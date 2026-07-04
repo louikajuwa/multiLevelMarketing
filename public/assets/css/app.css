@@ -135,8 +135,15 @@ h1, h2, h3 { letter-spacing: -0.01em; }
 .data-table tbody tr:hover { background: var(--c-accent-50); }
 .data-table [data-dt-sort] { cursor: pointer; user-select: none; }
 .data-table [data-dt-sort]:hover { color: var(--c-neutral-700); }
-/* Fixed, consistent table height across every listing (min = max). Header + pagination stay pinned. */
-.table-scroll { overflow: auto; min-height: 560px; max-height: 560px; position: relative; }
+/* App shell: viewport-fixed — the page never scrolls; only content regions do. */
+.app-main { overflow-y: auto; }
+.app-main.fill { overflow: hidden; display: flex; flex-direction: column; }
+.app-main.fill > .content { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.app-main.fill .content > .card.fill { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+.card.fill > .table-scroll { flex: 1; min-height: 0; }
+
+/* Table scroll region — header + pagination stay pinned while rows scroll. */
+.table-scroll { overflow: auto; position: relative; }
 .table-scroll [data-dt-pagination]:not(:empty) { position: sticky; bottom: 0; z-index: 2;
   background: var(--surface); border-top: 1px solid var(--border); }
 @media (max-width: 640px) {

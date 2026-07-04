@@ -1,13 +1,14 @@
 @extends('layouts.app')
 @section('title', 'Brands')
 @section('page-title', 'Brands')
+@section('main-mode', 'fill')
 
 @section('content')
 <x-page-header title="Brands" subtitle="Product brands.">
     @can('brands.create')<button class="btn btn-primary" id="btn-new">+ New brand</button>@endcan
 </x-page-header>
 
-<div class="card">
+<div class="card fill">
     <div class="card-pad flex items-center gap-3 border-b" style="border-color:var(--border)">
         <input id="dt-search" class="input" style="max-width:280px" placeholder="Search brands…">
         <select id="dt-status" class="select" style="max-width:150px">

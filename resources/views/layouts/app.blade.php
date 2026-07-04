@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="{{ asset('assets/css/app.css') }}">
 </head>
 <body class="h-full">
-<div class="min-h-full flex" x-data>
+<div class="h-screen flex overflow-hidden">
     {{-- Sidebar --}}
     <aside id="sidebar"
            class="fixed lg:static inset-y-0 left-0 z-40 w-64 -translate-x-full lg:translate-x-0 transition-transform
@@ -31,8 +31,8 @@
     </aside>
 
     {{-- Main --}}
-    <div class="flex-1 flex flex-col min-w-0">
-        <header class="h-16 bg-white border-b flex items-center justify-between px-4 lg:px-6" style="border-color: var(--border)">
+    <div class="flex-1 flex flex-col min-w-0 min-h-0">
+        <header class="h-16 shrink-0 bg-white border-b flex items-center justify-between px-4 lg:px-6" style="border-color: var(--border)">
             <div class="flex items-center gap-3">
                 <button id="sidebar-toggle" class="btn btn-ghost lg:hidden" aria-label="Toggle navigation">☰</button>
                 <h1 class="font-semibold">@yield('page-title', 'Dashboard')</h1>
@@ -51,7 +51,7 @@
             </div>
         </header>
 
-        <main class="flex-1 p-5 lg:p-7 overflow-x-hidden">
+        <main class="app-main flex-1 min-h-0 overflow-x-hidden p-5 lg:p-7 @yield('main-mode')">
             <div class="content">
                 @yield('content')
             </div>

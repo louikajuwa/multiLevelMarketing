@@ -1,13 +1,14 @@
 @extends('layouts.app')
 @section('title', 'Categories')
 @section('page-title', 'Categories')
+@section('main-mode', 'fill')
 
 @section('content')
 <x-page-header title="Categories" subtitle="Product categories (optionally nested).">
     @can('categories.create')<button class="btn btn-primary" id="btn-new">+ New category</button>@endcan
 </x-page-header>
 
-<div class="card">
+<div class="card fill">
     <div class="card-pad flex items-center gap-3 border-b" style="border-color:var(--border)">
         <input id="dt-search" class="input" style="max-width:280px" placeholder="Search categories…">
         <select id="dt-status" class="select" style="max-width:150px">
