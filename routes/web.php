@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\PartnerLevelController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\ProfileController;
+use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
 
@@ -35,6 +36,18 @@ Route::middleware('auth')->group(function (): void {
     Route::get('profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::put('profile/password', [PasswordController::class, 'changePassword'])->name('profile.password');
+
+    /*
+     | Customers (admin sees all; partners scoped to their own)
+     */
+    Route::get('customers', [CustomerController::class, 'index'])
+        ->middleware('permission:customers.view')->name('customers.index');
+    Route::post('customers', [CustomerController::class, 'store'])
+        ->middleware('permission:customers.create')->name('customers.store');
+    Route::put('customers/{customer}', [CustomerController::class, 'update'])
+        ->middleware('permission:customers.update')->name('customers.update');
+    Route::delete('customers/{customer}', [CustomerController::class, 'destroy'])
+        ->middleware('permission:customers.delete')->name('customers.destroy');
 
     /*
      | Admin area

@@ -5,10 +5,13 @@
 
 <a href="{{ $href('dashboard') }}" class="nav-link {{ $active('dashboard') ? 'active' : '' }}">Dashboard</a>
 
-@canany(['partners.view', 'partner_levels.view', 'products.view', 'orders.view', 'commissions.view', 'settings.view'])
-    <div class="nav-section">Administration</div>
+@canany(['partners.view', 'partner_levels.view', 'customers.view', 'products.view', 'orders.view', 'commissions.view', 'settings.view'])
+    <div class="nav-section">Manage</div>
     @can('partners.view')
         <a href="{{ $href('admin.partners.index') }}" class="nav-link {{ $active('admin.partners') ? 'active' : '' }}">Partners</a>
+    @endcan
+    @can('customers.view')
+        <a href="{{ $href('customers.index') }}" class="nav-link {{ $active('customers') ? 'active' : '' }}">Customers</a>
     @endcan
     @can('partner_levels.view')
         <a href="{{ $href('admin.partner-levels.index') }}" class="nav-link {{ $active('admin.partner-levels') ? 'active' : '' }}">Partner Levels</a>
