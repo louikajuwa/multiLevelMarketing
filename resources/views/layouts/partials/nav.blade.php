@@ -1,32 +1,20 @@
 @php
-    $navItem = function (string $routeName, string $label) {
-        $active = request()->routeIs($routeName) || request()->routeIs($routeName.'.*');
-        $base = 'flex items-center gap-2 px-3 py-2 rounded-md transition';
-        $cls = $active
-            ? 'bg-[color:var(--c-accent-50)] text-[color:var(--c-accent-700)] font-semibold'
-            : 'text-[color:var(--c-neutral-600)] hover:bg-[color:var(--c-neutral-100)]';
-        return [$base.' '.$cls, \Illuminate\Support\Facades\Route::has($routeName) ? route($routeName) : '#'];
-    };
+    $active = fn (string $r) => request()->routeIs($r) || request()->routeIs($r.'.*');
+    $href = fn (string $r) => \Illuminate\Support\Facades\Route::has($r) ? route($r) : '#';
 @endphp
 
-@php([$cls, $href] = $navItem('dashboard', 'Dashboard'))
-<a href="{{ $href }}" class="{{ $cls }}">Dashboard</a>
+<a href="{{ $href('dashboard') }}" class="nav-link {{ $active('dashboard') ? 'active' : '' }}">Dashboard</a>
 
-@canany(['partner_levels.view', 'partners.view', 'products.view', 'orders.view', 'commissions.view', 'settings.view'])
-    <div class="pt-3 mt-2 border-t" style="border-color:var(--border)">
-        <p class="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wide" style="color:var(--c-neutral-400)">Administration</p>
-    </div>
+@canany(['partners.view', 'partner_levels.view', 'products.view', 'orders.view', 'commissions.view', 'settings.view'])
+    <div class="nav-section">Administration</div>
     @can('partners.view')
-        @php([$cls, $href] = $navItem('admin.partners', 'Partners'))
-        <a href="{{ $href }}" class="{{ $cls }}">Partners</a>
+        <a href="{{ $href('admin.partners') }}" class="nav-link {{ $active('admin.partners') ? 'active' : '' }}">Partners</a>
     @endcan
     @can('partner_levels.view')
-        @php([$cls, $href] = $navItem('admin.partner-levels', 'Partner Levels'))
-        <a href="{{ $href }}" class="{{ $cls }}">Partner Levels</a>
+        <a href="{{ $href('admin.partner-levels') }}" class="nav-link {{ $active('admin.partner-levels') ? 'active' : '' }}">Partner Levels</a>
     @endcan
-    {{-- Partners, Customers, Products, Orders, Commissions, Tree, Reports, Settings, Audit
-         links are appended by their respective phases. --}}
+    {{-- Customers, Products, Orders, Commissions, Tree, Reports, Settings, Audit appended by later phases. --}}
 @endcanany
 
-@php([$cls, $href] = $navItem('profile.edit', 'Profile'))
-<a href="{{ $href }}" class="{{ $cls }}">Profile</a>
+<div class="nav-section">Account</div>
+<a href="{{ $href('profile.edit') }}" class="nav-link {{ $active('profile.edit') ? 'active' : '' }}">Profile</a>

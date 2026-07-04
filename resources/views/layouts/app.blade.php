@@ -51,8 +51,10 @@
             </div>
         </header>
 
-        <main class="flex-1 p-4 lg:p-6 overflow-x-hidden">
-            @yield('content')
+        <main class="flex-1 p-5 lg:p-7 overflow-x-hidden">
+            <div class="content">
+                @yield('content')
+            </div>
         </main>
     </div>
 </div>
