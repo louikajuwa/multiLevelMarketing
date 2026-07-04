@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\PartnerLevelController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\ProfileController;
@@ -33,4 +34,19 @@ Route::middleware('auth')->group(function (): void {
     Route::get('profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::put('profile/password', [PasswordController::class, 'changePassword'])->name('profile.password');
+
+    /*
+     | Admin area
+     */
+    Route::prefix('admin')->name('admin.')->group(function (): void {
+        // Partner levels
+        Route::get('partner-levels', [PartnerLevelController::class, 'index'])
+            ->middleware('permission:partner_levels.view')->name('partner-levels.index');
+        Route::post('partner-levels', [PartnerLevelController::class, 'store'])
+            ->middleware('permission:partner_levels.create')->name('partner-levels.store');
+        Route::put('partner-levels/{partner_level}', [PartnerLevelController::class, 'update'])
+            ->middleware('permission:partner_levels.update')->name('partner-levels.update');
+        Route::delete('partner-levels/{partner_level}', [PartnerLevelController::class, 'destroy'])
+            ->middleware('permission:partner_levels.delete')->name('partner-levels.destroy');
+    });
 });

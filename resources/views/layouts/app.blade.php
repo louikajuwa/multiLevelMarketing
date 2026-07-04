@@ -63,6 +63,8 @@
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="{{ asset('assets/js/core/toast.js') }}"></script>
 <script src="{{ asset('assets/js/core/http.js') }}"></script>
+<script src="{{ asset('assets/js/core/modal.js') }}"></script>
+<script src="{{ asset('assets/js/core/table.js') }}"></script>
 <script>
     $(function () {
         $('#sidebar-toggle').on('click', function () {
