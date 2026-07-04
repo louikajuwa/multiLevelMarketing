@@ -69,6 +69,27 @@
       });
   };
 
+  // Multipart submit (file uploads) via FormData. opts: {form, url, method, button}
+  window.httpForm = function (opts) {
+    var $form = $(opts.form);
+    var $btn = opts.button ? $(opts.button) : $form.find('[type=submit]').first();
+    var btnHtml;
+    clearErrors($form);
+    if ($btn.length) { btnHtml = $btn.html(); $btn.prop('disabled', true).html('<span class="spinner"></span>'); }
+    var fd = new FormData($form[0]);
+    var method = (opts.method || 'POST').toUpperCase();
+    if (method !== 'POST') fd.append('_method', method);
+    return $.ajax({ method: 'POST', url: opts.url, data: fd, processData: false, contentType: false, dataType: 'json' })
+      .done(function (res) { if (res && res.message) window.toast(res.message, 'success'); })
+      .fail(function (xhr) {
+        var res = xhr.responseJSON || {};
+        if (xhr.status === 422) { showErrors($form, res.errors); window.toast(res.message || 'Please check the form.', 'error'); }
+        else if (xhr.status === 419) { window.toast('Session expired. Reloading…', 'error'); setTimeout(function () { location.reload(); }, 1200); }
+        else { window.toast((res && res.message) || 'Something went wrong.', 'error'); }
+      })
+      .always(function () { if ($btn.length) $btn.prop('disabled', false).html(btnHtml); });
+  };
+
   // Convenience: submit a <form> via AJAX. Reads method from data-method or the form.
   window.ajaxForm = function ($form, onSuccess) {
     $form = $($form);

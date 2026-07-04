@@ -2,12 +2,18 @@
 
 namespace App\Providers;
 
+use App\Repositories\Contracts\BrandRepositoryInterface;
+use App\Repositories\Contracts\CategoryRepositoryInterface;
 use App\Repositories\Contracts\CustomerRepositoryInterface;
 use App\Repositories\Contracts\PartnerLevelRepositoryInterface;
 use App\Repositories\Contracts\PartnerRepositoryInterface;
+use App\Repositories\Contracts\ProductRepositoryInterface;
+use App\Repositories\Eloquent\BrandRepository;
+use App\Repositories\Eloquent\CategoryRepository;
 use App\Repositories\Eloquent\CustomerRepository;
 use App\Repositories\Eloquent\PartnerLevelRepository;
 use App\Repositories\Eloquent\PartnerRepository;
+use App\Repositories\Eloquent\ProductRepository;
 use Illuminate\Support\ServiceProvider;
 
 /**
@@ -23,6 +29,9 @@ class RepositoryServiceProvider extends ServiceProvider
         PartnerLevelRepositoryInterface::class => PartnerLevelRepository::class,
         PartnerRepositoryInterface::class => PartnerRepository::class,
         CustomerRepositoryInterface::class => CustomerRepository::class,
+        BrandRepositoryInterface::class => BrandRepository::class,
+        CategoryRepositoryInterface::class => CategoryRepository::class,
+        ProductRepositoryInterface::class => ProductRepository::class,
     ];
 
     public function register(): void

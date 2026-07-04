@@ -13,6 +13,15 @@
     @can('customers.view')
         <a href="{{ $href('customers.index') }}" class="nav-link {{ $active('customers') ? 'active' : '' }}">Customers</a>
     @endcan
+    @can('products.view')
+        <a href="{{ $href('admin.products.index') }}" class="nav-link {{ $active('admin.products') ? 'active' : '' }}">Products</a>
+    @endcan
+    @can('categories.view')
+        <a href="{{ $href('admin.categories.index') }}" class="nav-link {{ $active('admin.categories') ? 'active' : '' }}">Categories</a>
+    @endcan
+    @can('brands.view')
+        <a href="{{ $href('admin.brands.index') }}" class="nav-link {{ $active('admin.brands') ? 'active' : '' }}">Brands</a>
+    @endcan
     @can('partner_levels.view')
         <a href="{{ $href('admin.partner-levels.index') }}" class="nav-link {{ $active('admin.partner-levels') ? 'active' : '' }}">Partner Levels</a>
     @endcan
