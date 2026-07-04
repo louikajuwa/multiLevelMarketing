@@ -31,7 +31,7 @@
         <table class="data-table">
             <thead>
                 <tr>
-                    <th>Partner</th>
+                    <th class="col-grow">Partner</th>
                     <th>Level</th>
                     <th data-dt-sort="depth">Depth</th>
                     <th data-dt-sort="direct_referral_count">Direct</th>
@@ -123,7 +123,7 @@ $(function () {
         searchInput: '#dt-search',
         filters: { '#dt-level': 'partner_level_id', '#dt-status': 'status' },
         row: (p) => `<tr>
-            <td><div class="font-medium">${esc(p.user ? p.user.name : '—')}</div>
+            <td class="col-grow"><div class="font-medium">${esc(p.user ? p.user.name : '—')}</div>
                 <div class="text-xs" style="color:var(--text-muted)">${esc(p.user ? p.user.email : '')}</div></td>
             <td>${esc(p.level ? p.level.name : '—')}</td>
             <td class="num">${p.depth}</td>

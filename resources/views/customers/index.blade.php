@@ -25,7 +25,7 @@
         <table class="data-table">
             <thead>
                 <tr>
-                    <th>Customer</th>
+                    <th class="col-grow">Customer</th>
                     <th>Partner</th>
                     <th data-dt-sort="discount_percent">Discount</th>
                     <th data-dt-sort="status">Status</th>
@@ -117,7 +117,7 @@ $(function () {
         url: listUrl, mount: '#dt', defaultSort: 'id', defaultDir: 'asc',
         searchInput: '#dt-search', filters: { '#dt-status': 'status' },
         row: (c) => `<tr>
-            <td><div class="font-medium">${esc(c.user ? c.user.name : '—')}</div>
+            <td class="col-grow"><div class="font-medium">${esc(c.user ? c.user.name : '—')}</div>
                 <div class="text-xs" style="color:var(--text-muted)">${esc(c.user ? c.user.email : '')}</div></td>
             <td>${esc(c.partner && c.partner.user ? c.partner.user.name : '—')}</td>
             <td class="num">${pct(c.discount_percent)}</td>

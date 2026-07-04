@@ -17,7 +17,7 @@
     </div>
     <div id="dt" class="table-scroll">
         <table class="data-table">
-            <thead><tr><th data-dt-sort="name">Name</th><th data-dt-sort="is_active">Status</th><th class="text-right">Actions</th></tr></thead>
+            <thead><tr><th data-dt-sort="name" class="col-grow">Name</th><th data-dt-sort="is_active">Status</th><th class="text-right">Actions</th></tr></thead>
             <tbody data-dt-body></tbody>
         </table>
         <div data-dt-empty class="hidden"><x-empty-state title="No brands yet" message="Create your first brand." /></div>
@@ -47,7 +47,7 @@ $(function () {
     const dt = new DataTable({
         url: listUrl, mount: '#dt', defaultSort: 'name', defaultDir: 'asc',
         searchInput: '#dt-search', filters: { '#dt-status': 'is_active' },
-        row: (b) => `<tr><td class="font-medium">${esc(b.name)}</td>
+        row: (b) => `<tr><td class="font-medium col-grow">${esc(b.name)}</td>
             <td>${b.is_active ? '<span class="badge badge-success">Active</span>' : '<span class="badge badge-neutral">Inactive</span>'}</td>
             <td class="text-right whitespace-nowrap">
                 @can('brands.update')<button class="btn btn-ghost btn-edit" data-id="${b.id}">Edit</button>@endcan

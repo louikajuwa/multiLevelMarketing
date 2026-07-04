@@ -141,6 +141,15 @@ h1, h2, h3 { letter-spacing: -0.01em; }
 .app-main.fill > .content { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 .app-main.fill .content > .card.fill { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
 .card.fill > .table-scroll { flex: 1; min-height: 0; }
+/* Table/list pages fill the width (capped on ultrawide); reading pages stay narrow. */
+.app-main.fill > .content { max-width: 1600px; }
+
+/* Column sizing: every column hugs its content EXCEPT the one tagged .col-grow, which
+   absorbs the remaining width. So few-column and many-column tables both look intentional
+   at any width — no awkward even-spread. Tag the primary (name) column .col-grow. */
+.data-table th, .data-table td { white-space: nowrap; }
+.data-table th:not(.col-grow), .data-table td:not(.col-grow) { width: 1%; }
+.data-table th.col-grow, .data-table td.col-grow { width: auto; white-space: normal; }
 
 /* Table scroll region — header + pagination stay pinned while rows scroll. */
 .table-scroll { overflow: auto; position: relative; }

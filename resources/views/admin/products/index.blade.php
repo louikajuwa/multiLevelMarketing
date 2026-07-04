@@ -21,7 +21,7 @@
     </div>
     <div id="dt" class="table-scroll">
         <table class="data-table">
-            <thead><tr><th>Product</th><th>Category</th><th>Brand</th><th data-dt-sort="retail_price">Retail</th><th data-dt-sort="stock">Stock</th><th data-dt-sort="is_active">Status</th><th class="text-right">Actions</th></tr></thead>
+            <thead><tr><th class="col-grow">Product</th><th>Category</th><th>Brand</th><th data-dt-sort="retail_price">Retail</th><th data-dt-sort="stock">Stock</th><th data-dt-sort="is_active">Status</th><th class="text-right">Actions</th></tr></thead>
             <tbody data-dt-body></tbody>
         </table>
         <div data-dt-empty class="hidden"><x-empty-state title="No products yet" message="Add your first product to the catalog." /></div>
@@ -68,7 +68,7 @@ $(function () {
         url: listUrl, mount: '#dt', defaultSort: 'name', defaultDir: 'asc',
         searchInput: '#dt-search', filters: { '#dt-cat': 'category_id', '#dt-brand': 'brand_id', '#dt-status': 'is_active' },
         row: (p) => `<tr>
-            <td><div class="flex items-center gap-3">${thumb(p)}<div><div class="font-medium">${esc(p.name)}</div><div class="text-xs" style="color:var(--text-muted)">${esc(p.sku)}</div></div></div></td>
+            <td class="col-grow"><div class="flex items-center gap-3">${thumb(p)}<div><div class="font-medium">${esc(p.name)}</div><div class="text-xs" style="color:var(--text-muted)">${esc(p.sku)}</div></div></div></td>
             <td>${esc(p.category ? p.category.name : '—')}</td>
             <td>${esc(p.brand ? p.brand.name : '—')}</td>
             <td class="num">${money(p.retail_price)}</td>

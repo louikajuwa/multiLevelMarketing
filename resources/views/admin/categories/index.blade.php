@@ -17,7 +17,7 @@
     </div>
     <div id="dt" class="table-scroll">
         <table class="data-table">
-            <thead><tr><th data-dt-sort="name">Name</th><th>Parent</th><th data-dt-sort="is_active">Status</th><th class="text-right">Actions</th></tr></thead>
+            <thead><tr><th data-dt-sort="name" class="col-grow">Name</th><th>Parent</th><th data-dt-sort="is_active">Status</th><th class="text-right">Actions</th></tr></thead>
             <tbody data-dt-body></tbody>
         </table>
         <div data-dt-empty class="hidden"><x-empty-state title="No categories yet" message="Create your first category." /></div>
@@ -53,7 +53,7 @@ $(function () {
     const dt = new DataTable({
         url: listUrl, mount: '#dt', defaultSort: 'name', defaultDir: 'asc',
         searchInput: '#dt-search', filters: { '#dt-status': 'is_active' },
-        row: (c) => `<tr><td class="font-medium">${esc(c.name)}</td>
+        row: (c) => `<tr><td class="font-medium col-grow">${esc(c.name)}</td>
             <td>${esc(c.parent ? c.parent.name : '—')}</td>
             <td>${c.is_active ? '<span class="badge badge-success">Active</span>' : '<span class="badge badge-neutral">Inactive</span>'}</td>
             <td class="text-right whitespace-nowrap">

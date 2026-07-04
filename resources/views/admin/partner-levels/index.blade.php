@@ -25,7 +25,7 @@
             <thead>
                 <tr>
                     <th data-dt-sort="level">Level</th>
-                    <th data-dt-sort="name">Name</th>
+                    <th data-dt-sort="name" class="col-grow">Name</th>
                     <th data-dt-sort="discount_percent">Discount</th>
                     <th data-dt-sort="commission_percent">Commission</th>
                     <th data-dt-sort="sponsor_bonus_percent">Sponsor bonus</th>
@@ -98,7 +98,7 @@ $(function () {
         filters: { '#dt-status': 'is_active' },
         row: (l) => `<tr>
             <td class="num">${l.level}</td>
-            <td class="font-medium">${esc(l.name)}</td>
+            <td class="font-medium col-grow">${esc(l.name)}</td>
             <td class="num">${pct(l.discount_percent)}</td>
             <td class="num">${pct(l.commission_percent)}</td>
             <td class="num">${pct(l.sponsor_bonus_percent)}</td>
