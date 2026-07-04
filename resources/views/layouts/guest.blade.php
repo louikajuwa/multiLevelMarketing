@@ -1,3 +1,4 @@
+@php($asset = fn ($p) => asset($p).'?v='.(@filemtime(public_path($p)) ?: config('app.version', '1')))
 <!DOCTYPE html>
 <html lang="en" class="h-full">
 <head>
@@ -9,7 +10,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700" rel="stylesheet">
-    <link rel="stylesheet" href="{{ asset('assets/css/app.css') }}">
+    <link rel="stylesheet" href="{{ $asset('assets/css/app.css') }}">
 </head>
 <body class="h-full">
     <div class="min-h-full flex flex-col items-center justify-center px-4 py-12">
@@ -32,8 +33,8 @@
 
     <div id="toast-root"></div>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="{{ asset('assets/js/core/toast.js') }}"></script>
-    <script src="{{ asset('assets/js/core/http.js') }}"></script>
+    <script src="{{ $asset('assets/js/core/toast.js') }}"></script>
+    <script src="{{ $asset('assets/js/core/http.js') }}"></script>
     @stack('scripts')
 </body>
 </html>
