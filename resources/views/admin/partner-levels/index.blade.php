@@ -130,10 +130,12 @@ $(function () {
     $('#btn-new').on('click', openCreate);
     $('#dt').on('click', '.btn-edit', function () { openEdit(dt.getItem($(this).data('id'))); });
     $('#dt').on('click', '.btn-del', function () {
-        const id = $(this).data('id');
-        if (!confirm('Delete this partner level?')) return;
-        window.http({ method: 'DELETE', url: base + '/' + id, button: this })
-            .done(() => dt.reload());
+        const id = $(this).data('id'); const btn = this;
+        window.confirmDialog({ title: 'Delete partner level?', message: 'This cannot be undone.', confirmText: 'Delete' })
+            .then(function (ok) {
+                if (!ok) return;
+                window.http({ method: 'DELETE', url: base + '/' + id, button: btn }).done(() => dt.reload());
+            });
     });
 
     $('#level-form').on('submit', function (e) {

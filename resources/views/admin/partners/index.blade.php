@@ -158,9 +158,12 @@ $(function () {
     $('#btn-new').on('click', openCreate);
     $('#dt').on('click', '.btn-edit', function () { openEdit(dt.getItem($(this).data('id'))); });
     $('#dt').on('click', '.btn-del', function () {
-        const id = $(this).data('id');
-        if (!confirm('Delete this partner? This removes their account.')) return;
-        window.http({ method: 'DELETE', url: base + '/' + id, button: this }).done(() => dt.reload());
+        const id = $(this).data('id'); const btn = this;
+        window.confirmDialog({ title: 'Delete partner?', message: 'This removes their account. This cannot be undone.', confirmText: 'Delete' })
+            .then(function (ok) {
+                if (!ok) return;
+                window.http({ method: 'DELETE', url: base + '/' + id, button: btn }).done(() => dt.reload());
+            });
     });
 
     $('#partner-form').on('submit', function (e) {

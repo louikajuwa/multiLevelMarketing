@@ -30,6 +30,7 @@ setup: ## One-time bootstrap: deps, key, socket secret, migrate + seed, storage 
 	$(APP) sh -c "chmod -R 777 storage bootstrap/cache"
 	$(APP) php artisan storage:link || true
 	$(APP) php artisan migrate --seed --force
+	$(APP) php artisan permission:cache-reset || true
 	@echo "Setup complete -> http://localhost:8080  (phpMyAdmin :8081, Mailpit :8025)"
 
 migrate: ## Run migrations
