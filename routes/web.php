@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\PartnerController;
 use App\Http\Controllers\Admin\PartnerLevelController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\PasswordController;
@@ -48,5 +49,15 @@ Route::middleware('auth')->group(function (): void {
             ->middleware('permission:partner_levels.update')->name('partner-levels.update');
         Route::delete('partner-levels/{partner_level}', [PartnerLevelController::class, 'destroy'])
             ->middleware('permission:partner_levels.delete')->name('partner-levels.destroy');
+
+        // Partners
+        Route::get('partners', [PartnerController::class, 'index'])
+            ->middleware('permission:partners.view')->name('partners.index');
+        Route::post('partners', [PartnerController::class, 'store'])
+            ->middleware('permission:partners.create')->name('partners.store');
+        Route::put('partners/{partner}', [PartnerController::class, 'update'])
+            ->middleware('permission:partners.update')->name('partners.update');
+        Route::delete('partners/{partner}', [PartnerController::class, 'destroy'])
+            ->middleware('permission:partners.delete')->name('partners.destroy');
     });
 });

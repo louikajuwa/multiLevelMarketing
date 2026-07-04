@@ -3,7 +3,9 @@
 namespace App\Providers;
 
 use App\Repositories\Contracts\PartnerLevelRepositoryInterface;
+use App\Repositories\Contracts\PartnerRepositoryInterface;
 use App\Repositories\Eloquent\PartnerLevelRepository;
+use App\Repositories\Eloquent\PartnerRepository;
 use Illuminate\Support\ServiceProvider;
 
 /**
@@ -17,6 +19,7 @@ class RepositoryServiceProvider extends ServiceProvider
      */
     public array $bindings = [
         PartnerLevelRepositoryInterface::class => PartnerLevelRepository::class,
+        PartnerRepositoryInterface::class => PartnerRepository::class,
     ];
 
     public function register(): void

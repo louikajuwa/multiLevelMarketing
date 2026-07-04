@@ -16,6 +16,10 @@
     <div class="pt-3 mt-2 border-t" style="border-color:var(--border)">
         <p class="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wide" style="color:var(--c-neutral-400)">Administration</p>
     </div>
+    @can('partners.view')
+        @php([$cls, $href] = $navItem('admin.partners', 'Partners'))
+        <a href="{{ $href }}" class="{{ $cls }}">Partners</a>
+    @endcan
     @can('partner_levels.view')
         @php([$cls, $href] = $navItem('admin.partner-levels', 'Partner Levels'))
         <a href="{{ $href }}" class="{{ $cls }}">Partner Levels</a>
