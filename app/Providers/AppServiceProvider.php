@@ -2,23 +2,22 @@
 
 namespace App\Providers;
 
+use App\Enums\RoleName;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
     public function register(): void
     {
         //
     }
 
-    /**
-     * Bootstrap any application services.
-     */
     public function boot(): void
     {
-        //
+        // Super Admin implicitly has every permission/ability.
+        Gate::before(function ($user, string $ability) {
+            return $user->hasRole(RoleName::SuperAdmin->value) ? true : null;
+        });
     }
 }
