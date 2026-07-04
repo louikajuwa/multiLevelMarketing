@@ -8,10 +8,10 @@
 @canany(['partners.view', 'partner_levels.view', 'products.view', 'orders.view', 'commissions.view', 'settings.view'])
     <div class="nav-section">Administration</div>
     @can('partners.view')
-        <a href="{{ $href('admin.partners') }}" class="nav-link {{ $active('admin.partners') ? 'active' : '' }}">Partners</a>
+        <a href="{{ $href('admin.partners.index') }}" class="nav-link {{ $active('admin.partners') ? 'active' : '' }}">Partners</a>
     @endcan
     @can('partner_levels.view')
-        <a href="{{ $href('admin.partner-levels') }}" class="nav-link {{ $active('admin.partner-levels') ? 'active' : '' }}">Partner Levels</a>
+        <a href="{{ $href('admin.partner-levels.index') }}" class="nav-link {{ $active('admin.partner-levels') ? 'active' : '' }}">Partner Levels</a>
     @endcan
     {{-- Customers, Products, Orders, Commissions, Tree, Reports, Settings, Audit appended by later phases. --}}
 @endcanany
