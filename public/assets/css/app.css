@@ -129,13 +129,16 @@ h1, h2, h3 { letter-spacing: -0.01em; }
 .data-table { width: 100%; border-collapse: collapse; font-size: .8125rem; }
 .data-table thead th { text-align: left; padding: .55rem .85rem; font-size: .6875rem; font-weight: 600;
   text-transform: uppercase; letter-spacing: .04em; color: var(--text-muted); background: var(--c-neutral-50);
-  border-bottom: 1px solid var(--border); white-space: nowrap; }
+  border-bottom: 1px solid var(--border); white-space: nowrap; position: sticky; top: 0; z-index: 2; }
 .data-table tbody td { padding: .7rem .85rem; border-bottom: 1px solid var(--c-neutral-100); }
 .data-table tbody tr:last-child td { border-bottom: none; }
 .data-table tbody tr:hover { background: var(--c-accent-50); }
 .data-table [data-dt-sort] { cursor: pointer; user-select: none; }
 .data-table [data-dt-sort]:hover { color: var(--c-neutral-700); }
-.table-scroll { overflow-x: auto; }
+/* Fixed, consistent table height across every listing (min = max). Header + pagination stay pinned. */
+.table-scroll { overflow: auto; min-height: 560px; max-height: 560px; position: relative; }
+.table-scroll [data-dt-pagination]:not(:empty) { position: sticky; bottom: 0; z-index: 2;
+  background: var(--surface); border-top: 1px solid var(--border); }
 @media (max-width: 640px) {
   .data-table thead th:first-child, .data-table tbody td:first-child { position: sticky; left: 0; background: var(--surface); }
 }
