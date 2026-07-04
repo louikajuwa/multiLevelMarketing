@@ -12,6 +12,8 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             RolesAndPermissionsSeeder::class,
+            PartnerLevelSeeder::class,
+            SettingsSeeder::class,
         ]);
 
         // Staff accounts
@@ -26,5 +28,9 @@ class DatabaseSeeder extends Seeder
             ['name' => 'Admin User', 'password' => 'password', 'is_active' => true],
         );
         $admin->syncRoles([RoleName::Admin->value]);
+
+        $this->call([
+            DemoSeeder::class,
+        ]);
     }
 }
