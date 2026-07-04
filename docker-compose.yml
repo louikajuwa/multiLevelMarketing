@@ -1,0 +1,133 @@
+x-app: &app
+  build:
+    context: .
+    dockerfile: docker/php/Dockerfile
+  image: mlm/app:latest
+  env_file: .env
+  volumes:
+    - ./:/var/www/html
+  networks: [mlm]
+  depends_on:
+    mysql:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+
+services:
+  app:
+    <<: *app
+    container_name: mlm_app
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: mlm_nginx
+    ports:
+      - "8080:80"
+    volumes:
+      - ./:/var/www/html
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - app
+      - socket
+    networks: [mlm]
+
+  mysql:
+    image: mysql:8.4
+    container_name: mlm_mysql
+    ports:
+      - "3308:3306"
+    environment:
+      MYSQL_DATABASE: "${DB_DATABASE:-mlm}"
+      MYSQL_USER: "${DB_USERNAME:-mlm_user}"
+      MYSQL_PASSWORD: "${DB_PASSWORD:-mlm_secret}"
+      MYSQL_ROOT_PASSWORD: "${DB_ROOT_PASSWORD:-root_secret}"
+    volumes:
+      - mlm_mysql:/var/lib/mysql
+      - ./docker/mysql/my.cnf:/etc/mysql/conf.d/my.cnf:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${DB_ROOT_PASSWORD:-root_secret}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks: [mlm]
+
+  redis:
+    image: redis:7-alpine
+    container_name: mlm_redis
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - mlm_redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks: [mlm]
+
+  phpmyadmin:
+    image: phpmyadmin:5.2
+    container_name: mlm_phpmyadmin
+    ports:
+      - "8081:80"
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      UPLOAD_LIMIT: 64M
+    depends_on:
+      - mysql
+    networks: [mlm]
+
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: mlm_mailpit
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+    networks: [mlm]
+
+  queue:
+    <<: *app
+    container_name: mlm_queue
+    command: ["php", "artisan", "queue:work", "redis", "--sleep=3", "--tries=3", "--max-time=3600"]
+    restart: unless-stopped
+    depends_on:
+      app:
+        condition: service_started
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  scheduler:
+    <<: *app
+    container_name: mlm_scheduler
+    command: ["sh", "-c", "while true; do php artisan schedule:run --no-interaction; sleep 60; done"]
+    restart: unless-stopped
+    depends_on:
+      app:
+        condition: service_started
+
+  socket:
+    build:
+      context: ./socket-server
+      dockerfile: Dockerfile
+    image: mlm/socket:latest
+    container_name: mlm_socket
+    environment:
+      SOCKET_PORT: 3001
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      SOCKET_CHANNEL: "${SOCKET_CHANNEL:-mlm.events}"
+      SOCKET_SECRET: "${SOCKET_SECRET:-}"
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks: [mlm]
+
+volumes:
+  mlm_mysql:
+  mlm_redis:
+
+networks:
+  mlm:
+    driver: bridge
