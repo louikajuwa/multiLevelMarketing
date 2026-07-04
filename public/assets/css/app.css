@@ -1,0 +1,110 @@
+/*
+ | MLM design tokens — "clean light professional" (Stripe-like).
+ | Light theme only (v1). Tailwind Play CDN provides utilities; this file owns
+ | the token layer + a few component classes so the look is coherent and owned.
+ */
+:root {
+  /* Neutral ramp */
+  --c-neutral-50:  #f8fafc;
+  --c-neutral-100: #f1f5f9;
+  --c-neutral-200: #e2e8f0;
+  --c-neutral-300: #cbd5e1;
+  --c-neutral-400: #94a3b8;
+  --c-neutral-500: #64748b;
+  --c-neutral-600: #475569;
+  --c-neutral-700: #334155;
+  --c-neutral-800: #1e293b;
+  --c-neutral-900: #0f172a;
+
+  /* Accent (one, professional blue) */
+  --c-accent-50:  #eef4ff;
+  --c-accent-100: #dbe6fe;
+  --c-accent-500: #3b5bdb;
+  --c-accent-600: #364fc7;
+  --c-accent-700: #2f45ad;
+
+  /* Semantic */
+  --c-success: #12805c;
+  --c-success-bg: #e6f6f0;
+  --c-warning: #a15c07;
+  --c-warning-bg: #fbf3e2;
+  --c-danger:  #c0392b;
+  --c-danger-bg: #fdecea;
+  --c-info:    #2563eb;
+  --c-info-bg: #e8f0fe;
+
+  --bg: var(--c-neutral-50);
+  --surface: #ffffff;
+  --text: var(--c-neutral-800);
+  --text-muted: var(--c-neutral-500);
+  --border: var(--c-neutral-200);
+
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-lg: 14px;
+
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, .06);
+  --shadow: 0 1px 3px rgba(15, 23, 42, .08), 0 1px 2px rgba(15, 23, 42, .04);
+  --shadow-lg: 0 10px 25px -5px rgba(15, 23, 42, .12), 0 4px 10px -6px rgba(15, 23, 42, .10);
+
+  --font-sans: "Instrument Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-num: "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
+}
+
+html, body { background: var(--bg); color: var(--text); font-family: var(--font-sans); font-size: 16px; }
+
+/* Tabular figures for money/counts */
+.num, td.num, .tabular { font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
+
+/* Buttons */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+  height: 40px; padding: 0 1rem; border-radius: var(--radius-sm); font-weight: 600;
+  font-size: .9rem; cursor: pointer; border: 1px solid transparent; transition: background .15s, border-color .15s, opacity .15s; }
+.btn:focus-visible { outline: 2px solid var(--c-accent-500); outline-offset: 2px; }
+.btn:disabled { opacity: .6; cursor: not-allowed; }
+.btn-primary { background: var(--c-accent-600); color: #fff; }
+.btn-primary:hover { background: var(--c-accent-700); }
+.btn-secondary { background: #fff; color: var(--text); border-color: var(--border); }
+.btn-secondary:hover { background: var(--c-neutral-50); }
+.btn-danger { background: var(--c-danger); color: #fff; }
+.btn-ghost { background: transparent; color: var(--text-muted); }
+.btn-ghost:hover { background: var(--c-neutral-100); color: var(--text); }
+.btn-block { width: 100%; }
+
+/* Inputs */
+.field { margin-bottom: 1rem; }
+.label { display: block; font-size: .82rem; font-weight: 600; color: var(--c-neutral-700); margin-bottom: .35rem; }
+.input, .select, .textarea { width: 100%; height: 42px; padding: 0 .75rem; border: 1px solid var(--border);
+  border-radius: var(--radius-sm); background: #fff; color: var(--text); font-size: .95rem; transition: border-color .15s, box-shadow .15s; }
+.textarea { height: auto; padding: .6rem .75rem; }
+.input:focus, .select:focus, .textarea:focus { outline: none; border-color: var(--c-accent-500); box-shadow: 0 0 0 3px var(--c-accent-50); }
+.input.is-invalid { border-color: var(--c-danger); }
+.error-text { color: var(--c-danger); font-size: .8rem; margin-top: .3rem; display: none; }
+.error-text.show { display: block; }
+
+/* Surfaces */
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-sm); }
+.card-pad { padding: 1.25rem 1.5rem; }
+
+/* Badges */
+.badge { display: inline-flex; align-items: center; padding: .15rem .55rem; border-radius: 999px; font-size: .72rem; font-weight: 600; }
+.badge-neutral { background: var(--c-neutral-100); color: var(--c-neutral-600); }
+.badge-success { background: var(--c-success-bg); color: var(--c-success); }
+.badge-warning { background: var(--c-warning-bg); color: var(--c-warning); }
+.badge-danger  { background: var(--c-danger-bg);  color: var(--c-danger); }
+.badge-info    { background: var(--c-info-bg);    color: var(--c-info); }
+
+/* Toasts */
+#toast-root { position: fixed; top: 1rem; right: 1rem; z-index: 60; display: flex; flex-direction: column; gap: .5rem; }
+.toast { min-width: 260px; max-width: 380px; padding: .75rem 1rem; border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-lg); font-size: .9rem; color: #fff; opacity: 0; transform: translateY(-6px);
+  transition: opacity .2s, transform .2s; }
+.toast.show { opacity: 1; transform: translateY(0); }
+.toast-success { background: var(--c-success); }
+.toast-error { background: var(--c-danger); }
+.toast-info { background: var(--c-neutral-800); }
+
+/* Spinner */
+.spinner { width: 1rem; height: 1rem; border: 2px solid rgba(255,255,255,.4); border-top-color: #fff;
+  border-radius: 50%; animation: spin .6s linear infinite; display: inline-block; }
+@keyframes spin { to { transform: rotate(360deg); } }

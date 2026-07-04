@@ -53,8 +53,11 @@ logs: ## Tail logs
 ps: ## Show containers
 	$(COMPOSE) ps
 
-test: ## Run the test suite
-	$(APP) php artisan test
+TEST_ENV := -e APP_ENV=testing -e DB_CONNECTION=sqlite -e DB_DATABASE=:memory: \
+	-e CACHE_STORE=array -e SESSION_DRIVER=array -e QUEUE_CONNECTION=sync -e MAIL_MAILER=array
+
+test: ## Run the test suite (isolated: sqlite memory, array drivers)
+	$(COMPOSE) exec -T $(TEST_ENV) app php artisan test
 
 pint: ## Run Laravel Pint (format)
 	$(APP) ./vendor/bin/pint
