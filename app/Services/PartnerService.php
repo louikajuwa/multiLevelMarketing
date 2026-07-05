@@ -6,7 +6,9 @@ use App\Enums\RoleName;
 use App\Models\Partner;
 use App\Models\Setting;
 use App\Models\User;
+use App\Notifications\NewPartnerNotification;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -69,7 +71,13 @@ class PartnerService
                 $this->incrementAncestorDownline($partner);
             }
 
-            return $partner->load(['user', 'level']);
+            $partner->load(['user', 'level']);
+            Notification::send(
+                User::role([RoleName::SuperAdmin->value, RoleName::Admin->value])->get(),
+                new NewPartnerNotification($partner),
+            );
+
+            return $partner;
         });
     }
 

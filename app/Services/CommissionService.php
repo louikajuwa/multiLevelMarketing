@@ -8,6 +8,7 @@ use App\Models\Commission;
 use App\Models\Order;
 use App\Models\Partner;
 use App\Models\Setting;
+use App\Notifications\CommissionEarnedNotification;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -37,7 +38,7 @@ class CommissionService
             $pct = (float) ($partner->level->commission_percent ?? $this->setting('default_commission_percent', 0));
             $directAmount = round($base * $pct / 100, 2);
 
-            $order->commissions()->create([
+            $direct = $order->commissions()->create([
                 'partner_id' => $partner->id,
                 'type' => CommissionType::Direct,
                 'status' => CommissionStatus::Pending,
@@ -45,13 +46,14 @@ class CommissionService
                 'percent' => $pct,
                 'amount' => $directAmount,
             ]);
+            $partner->user?->notify(new CommissionEarnedNotification($direct));
 
             $sponsor = $partner->sponsor;
             if ($sponsor && $directAmount > 0) {
                 $sbPct = (float) ($sponsor->level->sponsor_bonus_percent ?? $this->setting('default_sponsor_bonus_percent', 0));
                 $bonus = round($directAmount * $sbPct / 100, 2);
                 if ($bonus > 0) {
-                    $order->commissions()->create([
+                    $bonusRow = $order->commissions()->create([
                         'partner_id' => $sponsor->id,
                         'type' => CommissionType::SponsorBonus,
                         'status' => CommissionStatus::Pending,
@@ -59,6 +61,7 @@ class CommissionService
                         'percent' => $sbPct,
                         'amount' => $bonus,
                     ]);
+                    $sponsor->user?->notify(new CommissionEarnedNotification($bonusRow));
                 }
             }
         });

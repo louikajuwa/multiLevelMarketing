@@ -39,6 +39,16 @@
                 <h1 class="font-semibold">@yield('page-title', 'Dashboard')</h1>
             </div>
             <div class="flex items-center gap-3">
+                <div class="relative" id="notif">
+                    <button class="btn btn-ghost" id="notif-btn" style="position:relative" aria-label="Notifications">
+                        <svg class="ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                        <span id="notif-badge" class="hidden" style="position:absolute;top:0;right:0;min-width:16px;height:16px;padding:0 4px;border-radius:9px;background:var(--c-danger);color:#fff;font-size:10px;line-height:16px;text-align:center">0</span>
+                    </button>
+                    <div id="notif-dd" class="hidden absolute right-0 mt-2 card shadow-lg" style="width:340px;z-index:60">
+                        <div class="card-header"><span class="card-title">Notifications</span><button class="btn btn-ghost btn-sm" id="notif-read">Mark all read</button></div>
+                        <div id="notif-list" style="max-height:340px;overflow:auto"></div>
+                    </div>
+                </div>
                 <div class="relative" id="user-menu">
                     <button class="btn btn-secondary" id="user-menu-btn">
                         {{ auth()->user()->name }} ▾
@@ -82,6 +92,28 @@
             window.http({ method: 'POST', url: '{{ route('logout') }}', quiet: true })
                 .done(function (res) { window.location = (res.data && res.data.redirect) || '{{ route('login') }}'; });
         });
+
+        // Notifications bell
+        const esc = (s) => $('<div>').text(s == null ? '' : s).html();
+        function loadNotifs() {
+            $.getJSON('{{ route('notifications.index') }}').done(function (res) {
+                const d = res.data || {};
+                if (d.unread > 0) $('#notif-badge').removeClass('hidden').text(d.unread > 9 ? '9+' : d.unread);
+                else $('#notif-badge').addClass('hidden');
+                const items = d.items || [];
+                $('#notif-list').html(items.length ? items.map(n => `
+                    <a href="${n.url || '#'}" class="block px-4 py-2 border-b" style="border-color:var(--c-neutral-100);${n.read ? '' : 'background:var(--c-accent-50)'}">
+                        <div class="font-medium text-sm">${esc(n.title)}</div>
+                        <div class="text-xs" style="color:var(--text-muted)">${esc(n.message)} · ${esc(n.at)}</div>
+                    </a>`).join('') : '<div class="p-4 text-center text-sm" style="color:var(--text-muted)">You\'re all caught up</div>');
+            });
+        }
+        $('#notif-btn').on('click', function (e) { e.stopPropagation(); $('#notif-dd').toggleClass('hidden'); });
+        $('#notif-dd').on('click', function (e) { e.stopPropagation(); });
+        $('#notif-read').on('click', function () { window.http({ method: 'POST', url: '{{ route('notifications.read') }}', quiet: true }).done(loadNotifs); });
+        $(document).on('click', function () { $('#notif-dd').addClass('hidden'); });
+        loadNotifs();
+        setInterval(loadNotifs, 30000);
     });
 </script>
 @stack('scripts')

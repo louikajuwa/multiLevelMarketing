@@ -7,6 +7,7 @@ use App\Enums\PaymentStatus;
 use App\Models\Customer;
 use App\Models\Order;
 use App\Models\Product;
+use App\Notifications\NewOrderNotification;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -88,6 +89,8 @@ class OrderService
                 'method' => 'manual',
                 'status' => PaymentStatus::Pending,
             ]);
+
+            $customer->partner->user?->notify(new NewOrderNotification($order));
 
             return $order->load(['items', 'customer.user', 'partner.user', 'payments']);
         });
