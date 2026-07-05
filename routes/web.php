@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\ProfileController;
+use App\Http\Controllers\CommissionController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\OrderController;
@@ -64,6 +65,14 @@ Route::middleware('auth')->group(function (): void {
         ->middleware('permission:orders.view')->name('orders.show');
     Route::put('orders/{order}/status', [OrderController::class, 'updateStatus'])
         ->middleware('permission:orders.update_status')->name('orders.status');
+
+    /*
+     | Commissions (admin all; partner own earnings)
+     */
+    Route::get('commissions', [CommissionController::class, 'index'])
+        ->middleware('permission:commissions.view')->name('commissions.index');
+    Route::post('commissions/adjust', [CommissionController::class, 'adjust'])
+        ->middleware('permission:commissions.adjust')->name('commissions.adjust');
 
     /*
      | Admin area

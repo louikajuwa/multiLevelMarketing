@@ -13,7 +13,10 @@ use Illuminate\Validation\ValidationException;
 
 class OrderService
 {
-    public function __construct(private readonly PricingService $pricing) {}
+    public function __construct(
+        private readonly PricingService $pricing,
+        private readonly CommissionService $commissions,
+    ) {}
 
     /**
      * Place an order for a customer. Atomic: locks each product row, checks + decrements
@@ -101,6 +104,8 @@ class OrderService
                     'status' => PaymentStatus::Paid,
                     'paid_at' => now(),
                 ]);
+                // Commission base = final subtotal (after discount); idempotent.
+                $this->commissions->generateForPaidOrder($order);
             }
 
             return $order->refresh();

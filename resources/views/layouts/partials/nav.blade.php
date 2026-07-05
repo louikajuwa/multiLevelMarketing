@@ -16,6 +16,9 @@
     @can('orders.view')
         <a href="{{ $href('orders.index') }}" class="nav-link {{ $active('orders') ? 'active' : '' }}">Orders</a>
     @endcan
+    @can('commissions.view')
+        <a href="{{ $href('commissions.index') }}" class="nav-link {{ $active('commissions') ? 'active' : '' }}">Commissions</a>
+    @endcan
     @can('products.view')
         <a href="{{ $href('admin.products.index') }}" class="nav-link {{ $active('admin.products') ? 'active' : '' }}">Products</a>
     @endcan
