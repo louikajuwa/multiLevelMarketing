@@ -16,6 +16,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\RealtimeController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\SettingController;
 use App\Http\Controllers\TreeController;
 use Illuminate\Support\Facades\Route;
 
@@ -138,6 +139,14 @@ Route::middleware('auth')->group(function (): void {
         // Audit + activity logs
         Route::get('audit', [AuditLogController::class, 'index'])
             ->middleware('permission:audit.view')->name('audit.index');
+
+        // Settings
+        Route::get('settings', [SettingController::class, 'index'])
+            ->middleware('permission:settings.view')->name('settings.index');
+        Route::put('settings', [SettingController::class, 'update'])
+            ->middleware('permission:settings.update')->name('settings.update');
+        Route::post('settings/test-email', [SettingController::class, 'testEmail'])
+            ->middleware('permission:settings.update')->name('settings.test-email');
 
         // Catalog: products
         Route::get('products', [ProductController::class, 'index'])->middleware('permission:products.view')->name('products.index');

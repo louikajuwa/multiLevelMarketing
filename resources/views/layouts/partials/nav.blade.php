@@ -40,7 +40,9 @@
     @can('partner_levels.view')
         <a href="{{ $href('admin.partner-levels.index') }}" class="nav-link {{ $active('admin.partner-levels') ? 'active' : '' }}">Partner Levels</a>
     @endcan
-    {{-- Customers, Products, Orders, Commissions, Tree, Reports, Settings, Audit appended by later phases. --}}
+    @can('settings.view')
+        <a href="{{ $href('admin.settings.index') }}" class="nav-link {{ $active('admin.settings') ? 'active' : '' }}">Settings</a>
+    @endcan
 @endcanany
 
 <div class="nav-section">Account</div>
