@@ -10,6 +10,7 @@ use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\ProfileController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\OrderController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn () => redirect()->route(auth()->check() ? 'dashboard' : 'login'));
@@ -51,6 +52,18 @@ Route::middleware('auth')->group(function (): void {
         ->middleware('permission:customers.update')->name('customers.update');
     Route::delete('customers/{customer}', [CustomerController::class, 'destroy'])
         ->middleware('permission:customers.delete')->name('customers.destroy');
+
+    /*
+     | Orders (admin all; partner own network; customer own)
+     */
+    Route::get('orders', [OrderController::class, 'index'])
+        ->middleware('permission:orders.view')->name('orders.index');
+    Route::post('orders', [OrderController::class, 'store'])
+        ->middleware('permission:orders.create')->name('orders.store');
+    Route::get('orders/{order}', [OrderController::class, 'show'])
+        ->middleware('permission:orders.view')->name('orders.show');
+    Route::put('orders/{order}/status', [OrderController::class, 'updateStatus'])
+        ->middleware('permission:orders.update_status')->name('orders.status');
 
     /*
      | Admin area

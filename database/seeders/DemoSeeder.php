@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\OrderStatus;
 use App\Enums\RoleName;
 use App\Models\Brand;
 use App\Models\Category;
@@ -10,6 +11,7 @@ use App\Models\Partner;
 use App\Models\PartnerLevel;
 use App\Models\Product;
 use App\Models\User;
+use App\Services\OrderService;
 use Illuminate\Database\Seeder;
 
 class DemoSeeder extends Seeder
@@ -75,6 +77,20 @@ class DemoSeeder extends Seeder
                 'direct_referral_count' => Partner::where('parent_id', $partner->id)->count(),
                 'total_downline_count' => Partner::where('path', 'like', $partner->path.$partner->id.'/%')->count(),
             ]);
+        }
+
+        // --- Demo orders (a couple per customer, some marked paid) ---
+        $orders = app(OrderService::class);
+        $pool = Product::inStock()->take(4)->get();
+        if ($pool->isNotEmpty()) {
+            foreach (Customer::with('partner.level', 'user')->get() as $i => $cust) {
+                $picks = $pool->random(min(2, $pool->count()));
+                $lines = $picks->map(fn (Product $p) => ['product_id' => $p->id, 'quantity' => 1])->all();
+                $order = $orders->place($cust, $lines);
+                if ($i % 2 === 0) {
+                    $orders->setStatus($order, OrderStatus::Paid);
+                }
+            }
         }
     }
 }
