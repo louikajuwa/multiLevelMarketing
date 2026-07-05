@@ -22,6 +22,9 @@
     @can('tree.view')
         <a href="{{ $href('tree.index') }}" class="nav-link {{ $active('tree') ? 'active' : '' }}">Tree</a>
     @endcan
+    @can('reports.view')
+        <a href="{{ $href('reports.index') }}" class="nav-link {{ $active('reports') ? 'active' : '' }}">Reports</a>
+    @endcan
     @can('products.view')
         <a href="{{ $href('admin.products.index') }}" class="nav-link {{ $active('admin.products') ? 'active' : '' }}">Products</a>
     @endcan

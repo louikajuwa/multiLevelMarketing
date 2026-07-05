@@ -12,6 +12,7 @@ use App\Http\Controllers\CommissionController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\TreeController;
 use Illuminate\Support\Facades\Route;
 
@@ -82,6 +83,14 @@ Route::middleware('auth')->group(function (): void {
         ->middleware('permission:tree.view')->name('tree.index');
     Route::get('tree/nodes', [TreeController::class, 'nodes'])
         ->middleware('permission:tree.view')->name('tree.nodes');
+
+    /*
+     | Reports (Excel / CSV / PDF)
+     */
+    Route::get('reports', [ReportController::class, 'index'])
+        ->middleware('permission:reports.view')->name('reports.index');
+    Route::get('reports/export', [ReportController::class, 'export'])
+        ->middleware('permission:reports.view')->name('reports.export');
 
     /*
      | Admin area
