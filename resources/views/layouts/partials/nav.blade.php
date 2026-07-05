@@ -34,6 +34,9 @@
     @can('brands.view')
         <a href="{{ $href('admin.brands.index') }}" class="nav-link {{ $active('admin.brands') ? 'active' : '' }}">Brands</a>
     @endcan
+    @can('audit.view')
+        <a href="{{ $href('admin.audit.index') }}" class="nav-link {{ $active('admin.audit') ? 'active' : '' }}">Audit Log</a>
+    @endcan
     @can('partner_levels.view')
         <a href="{{ $href('admin.partner-levels.index') }}" class="nav-link {{ $active('admin.partner-levels') ? 'active' : '' }}">Partner Levels</a>
     @endcan

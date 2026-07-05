@@ -4,13 +4,14 @@ namespace App\Models;
 
 use App\Enums\CommissionStatus;
 use App\Enums\CommissionType;
+use App\Models\Concerns\Auditable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Commission extends Model
 {
-    use HasFactory;
+    use Auditable, HasFactory;
 
     protected $fillable = [
         'order_id', 'partner_id', 'type', 'status',

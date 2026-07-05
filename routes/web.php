@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\PartnerController;
 use App\Http\Controllers\Admin\PartnerLevelController;
 use App\Http\Controllers\Admin\ProductController;
+use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\ProfileController;
@@ -133,6 +134,10 @@ Route::middleware('auth')->group(function (): void {
         Route::post('categories', [CategoryController::class, 'store'])->middleware('permission:categories.create')->name('categories.store');
         Route::put('categories/{category}', [CategoryController::class, 'update'])->middleware('permission:categories.update')->name('categories.update');
         Route::delete('categories/{category}', [CategoryController::class, 'destroy'])->middleware('permission:categories.delete')->name('categories.destroy');
+
+        // Audit + activity logs
+        Route::get('audit', [AuditLogController::class, 'index'])
+            ->middleware('permission:audit.view')->name('audit.index');
 
         // Catalog: products
         Route::get('products', [ProductController::class, 'index'])->middleware('permission:products.view')->name('products.index');
