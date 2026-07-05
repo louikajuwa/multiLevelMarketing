@@ -54,11 +54,11 @@ class RealtimeService
 
     private function secret(): string
     {
-        return (string) env('SOCKET_SECRET', '');
+        return (string) config('realtime.secret', '');
     }
 
     private function channel(): string
     {
-        return (string) env('SOCKET_CHANNEL', 'mlm.events');
+        return (string) config('realtime.channel', 'mlm.events');
     }
 }
