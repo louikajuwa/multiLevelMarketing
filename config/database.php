@@ -179,6 +179,17 @@ return [
             'backoff_cap' => env('REDIS_BACKOFF_CAP', 1000),
         ],
 
+        // Pub/sub channel for the Node Socket.IO bridge — NO key prefix so the
+        // published channel name matches exactly what the socket server subscribes to.
+        'realtime' => [
+            'url' => env('REDIS_URL'),
+            'host' => env('REDIS_HOST', '127.0.0.1'),
+            'password' => env('REDIS_PASSWORD'),
+            'port' => env('REDIS_PORT', '6379'),
+            'database' => env('REDIS_DB', '0'),
+            'options' => ['prefix' => ''],
+        ],
+
     ],
 
 ];

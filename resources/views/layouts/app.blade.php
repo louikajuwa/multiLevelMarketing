@@ -78,6 +78,8 @@
 <script src="{{ $asset('assets/js/core/http.js') }}"></script>
 <script src="{{ $asset('assets/js/core/modal.js') }}"></script>
 <script src="{{ $asset('assets/js/core/table.js') }}"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script src="{{ $asset('assets/js/core/realtime.js') }}"></script>
 <script>
     $(function () {
         $('#sidebar-toggle').on('click', function () {
@@ -95,7 +97,7 @@
 
         // Notifications bell
         const esc = (s) => $('<div>').text(s == null ? '' : s).html();
-        function loadNotifs() {
+        window.loadNotifs = function () {
             $.getJSON('{{ route('notifications.index') }}').done(function (res) {
                 const d = res.data || {};
                 if (d.unread > 0) $('#notif-badge').removeClass('hidden').text(d.unread > 9 ? '9+' : d.unread);
@@ -107,7 +109,7 @@
                         <div class="text-xs" style="color:var(--text-muted)">${esc(n.message)} · ${esc(n.at)}</div>
                     </a>`).join('') : '<div class="p-4 text-center text-sm" style="color:var(--text-muted)">You\'re all caught up</div>');
             });
-        }
+        };
         $('#notif-btn').on('click', function (e) { e.stopPropagation(); $('#notif-dd').toggleClass('hidden'); });
         $('#notif-dd').on('click', function (e) { e.stopPropagation(); });
         $('#notif-read').on('click', function () { window.http({ method: 'POST', url: '{{ route('notifications.read') }}', quiet: true }).done(loadNotifs); });
