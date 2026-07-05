@@ -19,6 +19,9 @@
     @can('commissions.view')
         <a href="{{ $href('commissions.index') }}" class="nav-link {{ $active('commissions') ? 'active' : '' }}">Commissions</a>
     @endcan
+    @can('tree.view')
+        <a href="{{ $href('tree.index') }}" class="nav-link {{ $active('tree') ? 'active' : '' }}">Tree</a>
+    @endcan
     @can('products.view')
         <a href="{{ $href('admin.products.index') }}" class="nav-link {{ $active('admin.products') ? 'active' : '' }}">Products</a>
     @endcan
