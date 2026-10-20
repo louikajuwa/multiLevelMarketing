@@ -5,7 +5,7 @@
     <h1 class="text-lg font-semibold mb-1">Reset your password</h1>
     <p class="text-sm mb-5" style="color: var(--text-muted)">Enter your email and we'll send a reset link.</p>
 
-    <form id="forgot-form" method="POST" action="{{ route('password.email') }}">
+    <form id="forgot-form" data-busy="Sending…" method="POST" action="{{ route('password.email') }}">
         @csrf
         <div class="field">
             <label class="label" for="email">Email</label>

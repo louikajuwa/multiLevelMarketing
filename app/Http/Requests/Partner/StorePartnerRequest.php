@@ -20,7 +20,7 @@ class StorePartnerRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
-            'password' => ['required', Password::defaults()],
+            'password' => ['required', 'max:255', Password::defaults()],
             'partner_level_id' => ['required', 'integer', 'exists:partner_levels,id'],
             'sponsor_id' => ['nullable', 'integer', 'exists:partners,id'],
             'discount_override_percent' => ['nullable', 'numeric', 'between:0,100'],

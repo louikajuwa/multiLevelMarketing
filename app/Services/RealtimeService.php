@@ -52,6 +52,11 @@ class RealtimeService
         return rtrim(strtr(base64_encode($s), '+/', '-_'), '=');
     }
 
+    public function isConfigured(): bool
+    {
+        return $this->secret() !== '';
+    }
+
     private function secret(): string
     {
         return (string) config('realtime.secret', '');

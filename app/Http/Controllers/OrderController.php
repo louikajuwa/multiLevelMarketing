@@ -11,7 +11,6 @@ use App\Models\Product;
 use App\Repositories\Contracts\OrderRepositoryInterface;
 use App\Services\OrderService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Collection;
 
 class OrderController extends Controller
 {
@@ -39,12 +38,37 @@ class OrderController extends Controller
             return $this->paginate($this->orders->paginate($params, ['customer.user', 'partner.user']));
         }
 
+        $isCustomer = ! $user->isStaff() && ! $user->partner && $user->customer;
+
         return view('orders.index', [
-            'isStaff' => $user->isStaff(),
-            'customers' => $this->customerOptions($user),
-            'products' => Product::active()->inStock()->orderBy('name')->get(['id', 'name', 'sku', 'retail_price', 'stock']),
+            'canPickCustomer' => ! $isCustomer,       // staff + partners choose a customer; a customer orders for self
+            'selfCustomerId' => $user->customer?->id,
             'statuses' => OrderStatus::values(),
         ]);
+    }
+
+    /** Searchable customer options, scoped to who the user may see. */
+    public function customerOptions(Request $request): mixed
+    {
+        $term = (is_string($request->get('search')) ? trim($request->get('search')) : '');
+        $q = Customer::query()->visibleTo($request->user())->with('user:id,name');
+        if ($term !== '') {
+            $q->whereHas('user', fn ($u) => $u->where('name', 'like', "%{$term}%")->orWhere('email', 'like', "%{$term}%"));
+        }
+
+        return $this->paginate($q->orderBy('id')->paginate($this->optionLimit($request), ['id', 'user_id', 'partner_id']));
+    }
+
+    /** Searchable product options (active + in stock). */
+    public function productOptions(Request $request): mixed
+    {
+        $term = (is_string($request->get('search')) ? trim($request->get('search')) : '');
+        $q = Product::query()->active()->inStock();
+        if ($term !== '') {
+            $q->where(fn ($x) => $x->where('name', 'like', "%{$term}%")->orWhere('sku', 'like', "%{$term}%"));
+        }
+
+        return $this->paginate($q->orderBy('name')->paginate($this->optionLimit($request), ['id', 'name', 'sku', 'retail_price', 'stock']));
     }
 
     public function store(StoreOrderRequest $request): mixed
@@ -70,6 +94,8 @@ class OrderController extends Controller
 
     public function updateStatus(UpdateOrderStatusRequest $request, Order $order): mixed
     {
+        abort_unless($this->canSee($request->user(), $order), 403);
+
         $order = $this->service->setStatus($order, OrderStatus::from($request->string('status')->value()));
 
         return $this->ok($order, 'Order status updated.');
@@ -103,15 +129,5 @@ class OrderController extends Controller
         }
 
         return false;
-    }
-
-    private function customerOptions($user): Collection
-    {
-        $query = Customer::with('user:id,name');
-        if (! $user->isStaff() && $user->partner) {
-            $query->where('partner_id', $user->partner->id);
-        }
-
-        return $query->get(['id', 'user_id'])->map(fn (Customer $c) => ['id' => $c->id, 'name' => $c->user->name]);
     }
 }

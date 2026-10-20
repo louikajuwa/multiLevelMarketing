@@ -9,7 +9,7 @@
 </div>
 
 {{-- KPI strip --}}
-<div class="grid gap-4 mb-5" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">
+<div class="grid gap-4 mb-5" style="grid-template-columns:repeat(auto-fit,minmax(min(150px,100%),1fr))">
     @foreach ($kpis as $kpi)
         <div class="card stat">
             <span class="stat-label">{{ $kpi['label'] }}</span>
@@ -18,11 +18,11 @@
     @endforeach
 </div>
 
-<div class="grid gap-5" style="grid-template-columns:{{ $chart ? '2fr 1fr' : '1fr' }}">
+<div class="grid gap-5 {{ $chart ? 'dash-split' : '' }}">
     @if ($chart)
         <div class="card">
             <div class="card-header"><div class="card-title">{{ $role === 'partner' ? 'My sales' : 'Revenue' }} — last 6 months</div></div>
-            <div class="card-pad"><canvas id="revChart" height="120"></canvas></div>
+            <div class="card-pad"><canvas id="revChart" height="120" role="img" aria-label="Revenue bar chart for the last 6 months"></canvas></div>
         </div>
     @endif
 
@@ -37,7 +37,7 @@
                             <td class="col-grow font-medium">{{ $o['number'] }}</td>
                             <td>{{ $o['customer'] }}</td>
                             <td class="num">{{ $o['total'] }}</td>
-                            <td><x-badge :type="['pending'=>'warning','paid'=>'success','processing'=>'info','shipped'=>'info','completed'=>'success','cancelled'=>'danger'][$o['status']] ?? 'neutral'">{{ $o['status'] }}</x-badge></td>
+                            <td><x-badge :status="$o['status']">{{ $o['status'] }}</x-badge></td>
                         </tr>
                     @empty
                         <tr><td colspan="4" class="p-6 text-center" style="color:var(--text-muted)">No orders yet.</td></tr>
@@ -80,7 +80,7 @@
 
 @push('scripts')
 @if ($chart)
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" crossorigin="anonymous"></script>
 <script>
 $(function () {
     const ctx = document.getElementById('revChart');

@@ -43,15 +43,14 @@
 <script>
 $(function () {
     const listUrl = "{{ route('admin.brands.index') }}", base = "{{ url('admin/brands') }}";
-    const esc = (s) => $('<div>').text(s == null ? '' : s).html();
     const dt = new DataTable({
         url: listUrl, mount: '#dt', defaultSort: 'name', defaultDir: 'asc',
         searchInput: '#dt-search', filters: { '#dt-status': 'is_active' },
         row: (b) => `<tr><td class="font-medium col-grow">${esc(b.name)}</td>
             <td>${b.is_active ? '<span class="badge badge-success">Active</span>' : '<span class="badge badge-neutral">Inactive</span>'}</td>
             <td class="text-right whitespace-nowrap">
-                @can('brands.update')<button class="btn btn-ghost btn-edit" data-id="${b.id}">Edit</button>@endcan
-                @can('brands.delete')<button class="btn btn-ghost btn-del" data-id="${b.id}" style="color:var(--c-danger)">Delete</button>@endcan
+                @can('brands.update')<button class="btn btn-ghost btn-edit" data-id="${esc(b.id)}">Edit</button>@endcan
+                @can('brands.delete')<button class="btn btn-ghost btn-del" data-id="${esc(b.id)}" style="color:var(--c-danger)">Delete</button>@endcan
             </td></tr>`,
     });
     dt.reload();

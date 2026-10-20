@@ -13,6 +13,7 @@ use App\Services\OrderService;
 use App\Services\PartnerService;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 
 class CommissionTest extends TestCase
@@ -56,7 +57,10 @@ class CommissionTest extends TestCase
         [, , $customer, $product] = $this->scenario();
         $order = app(OrderService::class)->place($customer, [['product_id' => $product->id, 'quantity' => 1]]);
         app(OrderService::class)->setStatus($order, OrderStatus::Paid);
-        app(OrderService::class)->setStatus($order, OrderStatus::Paid); // again
+        try {
+            app(OrderService::class)->setStatus($order, OrderStatus::Paid); // again: rejected by state machine
+        } catch (ValidationException) {
+        }
 
         $this->assertSame(2, Commission::where('order_id', $order->id)->count()); // direct + sponsor only
     }

@@ -84,7 +84,7 @@ abstract class BaseRepository implements RepositoryInterface
 
     protected function applySearch(Builder $query, array $params): void
     {
-        $term = trim((string) ($params['search'] ?? ''));
+        $term = is_scalar($params['search'] ?? null) ? trim((string) $params['search']) : '';
         if ($term === '' || empty($this->searchable)) {
             return;
         }
@@ -99,7 +99,7 @@ abstract class BaseRepository implements RepositoryInterface
     protected function applyFilters(Builder $query, array $params): void
     {
         foreach ($this->filterable as $column) {
-            if (array_key_exists($column, $params) && $params[$column] !== null && $params[$column] !== '') {
+            if (array_key_exists($column, $params) && is_scalar($params[$column]) && $params[$column] !== '') {
                 $query->where($column, $params[$column]);
             }
         }
@@ -108,18 +108,18 @@ abstract class BaseRepository implements RepositoryInterface
     protected function applySort(Builder $query, array $params): void
     {
         $sortBy = $params['sort_by'] ?? $this->defaultSort;
-        if (! in_array($sortBy, $this->sortable, true)) {
+        if (! is_string($sortBy) || ! in_array($sortBy, $this->sortable, true)) {
             $sortBy = $this->defaultSort;
         }
 
-        $dir = strtolower((string) ($params['sort_dir'] ?? $this->defaultDir)) === 'asc' ? 'asc' : 'desc';
+        $dir = strtolower(is_string($params['sort_dir'] ?? null) ? $params['sort_dir'] : $this->defaultDir) === 'asc' ? 'asc' : 'desc';
 
         $query->orderBy($sortBy, $dir);
     }
 
     protected function resolvePerPage(array $params): int
     {
-        $perPage = (int) ($params['per_page'] ?? $this->defaultPerPage);
+        $perPage = is_scalar($params['per_page'] ?? null) ? (int) $params['per_page'] : $this->defaultPerPage;
         if ($perPage < 1) {
             $perPage = $this->defaultPerPage;
         }

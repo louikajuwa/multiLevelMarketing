@@ -48,6 +48,13 @@ class User extends Authenticatable
         return $this->hasOne(Customer::class);
     }
 
+    /** Partner/customer profile status must be active (staff have neither profile). */
+    public function hasActiveProfile(): bool
+    {
+        return ($this->partner === null || $this->partner->status === 'active')
+            && ($this->customer === null || $this->customer->status === 'active');
+    }
+
     public function isStaff(): bool
     {
         return $this->hasAnyRole([RoleName::SuperAdmin->value, RoleName::Admin->value]);

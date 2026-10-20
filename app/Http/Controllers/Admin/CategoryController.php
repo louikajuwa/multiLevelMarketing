@@ -8,6 +8,7 @@ use App\Models\Category;
 use App\Repositories\Contracts\CategoryRepositoryInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class CategoryController extends Controller
 {
@@ -19,9 +20,19 @@ class CategoryController extends Controller
             return $this->paginate($this->categories->paginate($request->all(), ['parent']));
         }
 
-        return view('admin.categories.index', [
-            'parents' => Category::orderBy('name')->get(['id', 'name']),
-        ]);
+        return view('admin.categories.index');
+    }
+
+    /** Searchable parent-category options. */
+    public function parentOptions(Request $request): mixed
+    {
+        $term = (is_string($request->get('search')) ? trim($request->get('search')) : '');
+        $q = Category::query();
+        if ($term !== '') {
+            $q->where('name', 'like', "%{$term}%");
+        }
+
+        return $this->paginate($q->orderBy('name')->paginate($this->optionLimit($request), ['id', 'name']));
     }
 
     public function store(StoreCategoryRequest $request): mixed
@@ -38,7 +49,7 @@ class CategoryController extends Controller
 
     public function update(StoreCategoryRequest $request, Category $category): mixed
     {
-        abort_if((int) $request->input('parent_id') === $category->id, 422, 'A category cannot be its own parent.');
+        $this->guardParentCycle($category, $request->input('parent_id') ? (int) $request->input('parent_id') : null);
 
         $this->categories->update($category, [
             'name' => $request->string('name'),
@@ -47,6 +58,18 @@ class CategoryController extends Controller
         ]);
 
         return $this->ok($category, 'Category updated.');
+    }
+
+    /** Reject a parent that is the category itself or one of its descendants (walk up from the proposed parent). */
+    private function guardParentCycle(Category $category, ?int $parentId): void
+    {
+        $steps = 0;
+        while ($parentId !== null) {
+            if ($parentId === $category->id || ++$steps > 100) {
+                throw ValidationException::withMessages(['parent_id' => 'A category cannot be its own parent or a descendant of itself.']);
+            }
+            $parentId = Category::whereKey($parentId)->value('parent_id');
+        }
     }
 
     public function destroy(Category $category): mixed

@@ -32,7 +32,7 @@ class StoreCustomerRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
-            'password' => ['required', Password::defaults()],
+            'password' => ['required', 'max:255', Password::defaults()],
             'partner_id' => ['required', 'integer', 'exists:partners,id'],
             'discount_percent' => ['nullable', 'numeric', 'between:0,100'],
             'phone' => ['nullable', 'string', 'max:32'],

@@ -7,7 +7,6 @@ use App\Enums\CommissionType;
 use App\Models\Commission;
 use App\Models\Order;
 use App\Models\Partner;
-use App\Models\Setting;
 use App\Notifications\CommissionEarnedNotification;
 use Illuminate\Support\Facades\DB;
 
@@ -20,10 +19,14 @@ use Illuminate\Support\Facades\DB;
  */
 class CommissionService
 {
+    public function __construct(private readonly SettingService $settings) {}
+
     /** Create direct + sponsor-bonus commissions for a freshly-paid order (idempotent). */
     public function generateForPaidOrder(Order $order): void
     {
         DB::transaction(function () use ($order): void {
+            Order::whereKey($order->id)->lockForUpdate()->first(); // serialize concurrent generation
+
             if ($order->commissions()->whereIn('type', [CommissionType::Direct->value, CommissionType::SponsorBonus->value])->exists()) {
                 return; // already generated
             }
@@ -85,6 +88,6 @@ class CommissionService
 
     private function setting(string $key, mixed $default): mixed
     {
-        return Setting::where('key', $key)->value('value') ?? $default;
+        return $this->settings->get($key, $default);
     }
 }

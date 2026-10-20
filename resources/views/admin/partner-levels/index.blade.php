@@ -87,7 +87,6 @@
 $(function () {
     const storeUrl = "{{ route('admin.partner-levels.index') }}";
     const base = "{{ url('admin/partner-levels') }}";
-    const esc = (s) => $('<div>').text(s == null ? '' : s).html();
     const pct = (v) => v == null ? '—' : (Number(v).toFixed(2).replace(/\.00$/, '') + '%');
 
     const dt = new DataTable({
@@ -97,15 +96,15 @@ $(function () {
         searchInput: '#dt-search',
         filters: { '#dt-status': 'is_active' },
         row: (l) => `<tr>
-            <td class="num">${l.level}</td>
+            <td class="num">${esc(l.level)}</td>
             <td class="font-medium col-grow">${esc(l.name)}</td>
             <td class="num">${pct(l.discount_percent)}</td>
             <td class="num">${pct(l.commission_percent)}</td>
             <td class="num">${pct(l.sponsor_bonus_percent)}</td>
             <td>${l.is_active ? '<span class="badge badge-success">Active</span>' : '<span class="badge badge-neutral">Inactive</span>'}</td>
             <td class="text-right whitespace-nowrap">
-                @can('partner_levels.update')<button class="btn btn-ghost btn-edit" data-id="${l.id}">Edit</button>@endcan
-                @can('partner_levels.delete')<button class="btn btn-ghost btn-del" data-id="${l.id}" style="color:var(--c-danger)">Delete</button>@endcan
+                @can('partner_levels.update')<button class="btn btn-ghost btn-edit" data-id="${esc(l.id)}">Edit</button>@endcan
+                @can('partner_levels.delete')<button class="btn btn-ghost btn-del" data-id="${esc(l.id)}" style="color:var(--c-danger)">Delete</button>@endcan
             </td>
         </tr>`,
     });

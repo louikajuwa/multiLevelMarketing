@@ -12,7 +12,7 @@ const PORT = parseInt(process.env.SOCKET_PORT || '3001', 10);
 const REDIS_HOST = process.env.REDIS_HOST || 'redis';
 const REDIS_PORT = parseInt(process.env.REDIS_PORT || '6379', 10);
 const CHANNEL = process.env.SOCKET_CHANNEL || 'mlm.events';
-// Shared secret with Laravel (derived from APP_KEY on the PHP side).
+// Shared secret with Laravel: must equal SOCKET_SECRET in Laravel's .env (config/realtime.php). Not derived from APP_KEY.
 const SECRET = process.env.SOCKET_SECRET || '';
 
 const app = express();

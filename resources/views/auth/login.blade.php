@@ -5,7 +5,7 @@
     <h1 class="text-lg font-semibold mb-1">Sign in to your account</h1>
     <p class="text-sm mb-5" style="color: var(--text-muted)">Welcome back. Enter your details to continue.</p>
 
-    <form id="login-form" method="POST" action="{{ route('login.attempt') }}">
+    <form id="login-form" data-busy="Signing in…" method="POST" action="{{ route('login.attempt') }}">
         @csrf
         <div class="field">
             <label class="label" for="email">Email</label>

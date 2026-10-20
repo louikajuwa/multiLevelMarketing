@@ -4,43 +4,102 @@ namespace App\Services;
 
 use App\Models\Customer;
 use App\Models\Partner;
+use Illuminate\Database\Eloquent\Builder;
 
 /**
- * Lazy tree loading via the materialized path. Never loads the whole tree —
- * only the roots, or one parent's direct children (partners + customers) on demand.
+ * Lazy, paginated tree loading via the materialized path. Never loads the whole
+ * tree — only a page of roots, of one parent's children, or of flat search hits.
+ * Every method returns ['data' => nodes[], 'meta' => paging].
  */
 class MlmTreeService
 {
-    /** Root nodes. Admin => depth-1 partners; a scoped partner => just themselves. */
-    public function roots(?Partner $scope): array
+    private const PER_PAGE = 25;
+
+    /** Root nodes. Admin => paged depth-1 partners; a scoped partner => just themselves. */
+    public function roots(?Partner $scope, int $page = 1): array
     {
         if ($scope) {
-            return [$this->partnerNode($scope->loadCount('customers'))];
+            return $this->result([$this->partnerNode($scope->loadCount('customers'))], 1, 1);
         }
 
-        return Partner::with(['user:id,name', 'level:id,name'])
-            ->withCount('customers')
-            ->where('depth', 1)
-            ->get()
-            ->map(fn (Partner $p) => $this->partnerNode($p))
-            ->all();
+        return $this->window(Partner::query()->where('depth', 1), null, $page);
     }
 
-    /** Direct children of a partner: sub-partners then customers (leaf). */
-    public function children(Partner $parent): array
+    /** Direct children of a partner (paged): sub-partners first, then customers. */
+    public function children(Partner $parent, int $page = 1): array
     {
-        $partners = Partner::with(['user:id,name', 'level:id,name'])
-            ->withCount('customers')
-            ->where('parent_id', $parent->id)
-            ->get()
-            ->map(fn (Partner $p) => $this->partnerNode($p));
+        return $this->window(
+            Partner::query()->where('parent_id', $parent->id),
+            Customer::query()->where('partner_id', $parent->id),
+            $page,
+        );
+    }
 
-        $customers = Customer::with('user:id,name')
-            ->where('partner_id', $parent->id)
-            ->get()
-            ->map(fn (Customer $c) => $this->customerNode($c));
+    /** Flat, paged search by user name/email. Scoped partner => own subtree only. */
+    public function search(string $term, ?Partner $scope, int $page = 1): array
+    {
+        $like = '%'.$term.'%';
+        $nameMatch = fn (Builder $u) => $u->where('name', 'like', $like)->orWhere('email', 'like', $like);
 
-        return $partners->concat($customers)->values()->all();
+        $partners = Partner::query()->whereHas('user', $nameMatch);
+        $customers = Customer::query()->whereHas('user', $nameMatch);
+
+        if ($scope) {
+            $subtree = $scope->path.$scope->id.'/%';
+            $partners->where(fn (Builder $x) => $x->where('id', $scope->id)->orWhere('path', 'like', $subtree));
+            $customers->whereHas('partner', fn (Builder $p) => $p->where('id', $scope->id)->orWhere('path', 'like', $subtree));
+        }
+
+        return $this->window($partners, $customers, $page);
+    }
+
+    /**
+     * One logical page over the concatenation [partners… then customers…], so a
+     * huge sibling set never loads at once.
+     */
+    private function window(Builder $partnerQuery, ?Builder $customerQuery, int $page): array
+    {
+        $perPage = self::PER_PAGE;
+        $offset = max(0, ($page - 1) * $perPage);
+
+        $pCount = (clone $partnerQuery)->count();
+        $cCount = $customerQuery ? (clone $customerQuery)->count() : 0;
+
+        $items = [];
+        if ($offset < $pCount) {
+            $partners = $partnerQuery->with(['user:id,name', 'level:id,name'])->withCount('customers')
+                ->orderBy('id')->skip($offset)->take($perPage)->get();
+            foreach ($partners as $p) {
+                $items[] = $this->partnerNode($p);
+            }
+            $remaining = $perPage - $partners->count();
+            if ($remaining > 0 && $customerQuery) {
+                foreach ($customerQuery->with('user:id,name')->orderBy('id')->take($remaining)->get() as $c) {
+                    $items[] = $this->customerNode($c);
+                }
+            }
+        } elseif ($customerQuery) {
+            $customers = $customerQuery->with('user:id,name')->orderBy('id')->skip($offset - $pCount)->take($perPage)->get();
+            foreach ($customers as $c) {
+                $items[] = $this->customerNode($c);
+            }
+        }
+
+        return $this->result($items, $page, (int) max(1, ceil(($pCount + $cCount) / $perPage)), $pCount + $cCount, $perPage);
+    }
+
+    private function result(array $data, int $page, int $lastPage, ?int $total = null, int $perPage = self::PER_PAGE): array
+    {
+        return [
+            'data' => $data,
+            'meta' => [
+                'current_page' => $page,
+                'last_page' => $lastPage,
+                'per_page' => $perPage,
+                'total' => $total ?? count($data),
+                'has_more' => $page < $lastPage,
+            ],
+        ];
     }
 
     /** Whether $viewer (a partner) may inspect $parent's children (self or descendant). */

@@ -38,6 +38,13 @@ class AuthController extends Controller
             ]);
         }
 
+        if (! Auth::user()->hasActiveProfile()) {
+            Auth::guard('web')->logout();
+            RateLimiter::hit($this->throttleKey($request));
+
+            throw ValidationException::withMessages(['email' => __('auth.failed')]);
+        }
+
         RateLimiter::clear($this->throttleKey($request));
         $request->session()->regenerate();
 

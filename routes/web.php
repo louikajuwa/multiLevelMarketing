@@ -30,10 +30,10 @@ Route::middleware('guest')->group(function (): void {
     Route::post('login', [AuthController::class, 'login'])->name('login.attempt');
 
     Route::get('forgot-password', [PasswordController::class, 'showForgot'])->name('password.request');
-    Route::post('forgot-password', [PasswordController::class, 'sendResetLink'])->name('password.email');
+    Route::post('forgot-password', [PasswordController::class, 'sendResetLink'])->middleware('throttle:5,1')->name('password.email');
 
     Route::get('reset-password/{token}', [PasswordController::class, 'showReset'])->name('password.reset');
-    Route::post('reset-password', [PasswordController::class, 'resetPassword'])->name('password.update');
+    Route::post('reset-password', [PasswordController::class, 'resetPassword'])->middleware('throttle:5,1')->name('password.update');
 });
 
 /*
@@ -57,6 +57,8 @@ Route::middleware('auth')->group(function (): void {
      */
     Route::get('customers', [CustomerController::class, 'index'])
         ->middleware('permission:customers.view')->name('customers.index');
+    Route::get('customers/partner-options', [CustomerController::class, 'partnerOptions'])
+        ->middleware('permission:customers.create')->name('customers.partner-options');
     Route::post('customers', [CustomerController::class, 'store'])
         ->middleware('permission:customers.create')->name('customers.store');
     Route::put('customers/{customer}', [CustomerController::class, 'update'])
@@ -69,6 +71,10 @@ Route::middleware('auth')->group(function (): void {
      */
     Route::get('orders', [OrderController::class, 'index'])
         ->middleware('permission:orders.view')->name('orders.index');
+    Route::get('orders/customer-options', [OrderController::class, 'customerOptions'])
+        ->middleware('permission:orders.create')->name('orders.customer-options');
+    Route::get('orders/product-options', [OrderController::class, 'productOptions'])
+        ->middleware('permission:orders.create')->name('orders.product-options');
     Route::post('orders', [OrderController::class, 'store'])
         ->middleware('permission:orders.create')->name('orders.store');
     Route::get('orders/{order}', [OrderController::class, 'show'])
@@ -81,6 +87,8 @@ Route::middleware('auth')->group(function (): void {
      */
     Route::get('commissions', [CommissionController::class, 'index'])
         ->middleware('permission:commissions.view')->name('commissions.index');
+    Route::get('commissions/partner-options', [CommissionController::class, 'partnerOptions'])
+        ->middleware('permission:commissions.adjust')->name('commissions.partner-options');
     Route::post('commissions/adjust', [CommissionController::class, 'adjust'])
         ->middleware('permission:commissions.adjust')->name('commissions.adjust');
 
@@ -117,6 +125,8 @@ Route::middleware('auth')->group(function (): void {
         // Partners
         Route::get('partners', [PartnerController::class, 'index'])
             ->middleware('permission:partners.view')->name('partners.index');
+        Route::get('partners/sponsor-options', [PartnerController::class, 'sponsorOptions'])
+            ->middleware('permission:partners.create')->name('partners.sponsor-options');
         Route::post('partners', [PartnerController::class, 'store'])
             ->middleware('permission:partners.create')->name('partners.store');
         Route::put('partners/{partner}', [PartnerController::class, 'update'])
@@ -132,6 +142,7 @@ Route::middleware('auth')->group(function (): void {
 
         // Catalog: categories
         Route::get('categories', [CategoryController::class, 'index'])->middleware('permission:categories.view')->name('categories.index');
+        Route::get('categories/parent-options', [CategoryController::class, 'parentOptions'])->middleware('permission:categories.create')->name('categories.parent-options');
         Route::post('categories', [CategoryController::class, 'store'])->middleware('permission:categories.create')->name('categories.store');
         Route::put('categories/{category}', [CategoryController::class, 'update'])->middleware('permission:categories.update')->name('categories.update');
         Route::delete('categories/{category}', [CategoryController::class, 'destroy'])->middleware('permission:categories.delete')->name('categories.destroy');
@@ -146,10 +157,12 @@ Route::middleware('auth')->group(function (): void {
         Route::put('settings', [SettingController::class, 'update'])
             ->middleware('permission:settings.update')->name('settings.update');
         Route::post('settings/test-email', [SettingController::class, 'testEmail'])
-            ->middleware('permission:settings.update')->name('settings.test-email');
+            ->middleware(['permission:settings.update', 'throttle:3,1'])->name('settings.test-email');
 
         // Catalog: products
         Route::get('products', [ProductController::class, 'index'])->middleware('permission:products.view')->name('products.index');
+        Route::get('products/category-options', [ProductController::class, 'categoryOptions'])->middleware('permission:products.create')->name('products.category-options');
+        Route::get('products/brand-options', [ProductController::class, 'brandOptions'])->middleware('permission:products.create')->name('products.brand-options');
         Route::post('products', [ProductController::class, 'store'])->middleware('permission:products.create')->name('products.store');
         Route::put('products/{product}', [ProductController::class, 'update'])->middleware('permission:products.update')->name('products.update');
         Route::delete('products/{product}', [ProductController::class, 'destroy'])->middleware('permission:products.delete')->name('products.destroy');

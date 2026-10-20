@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\CommissionStatus;
 use App\Http\Requests\Commission\AdjustCommissionRequest;
 use App\Models\Commission;
 use App\Models\Order;
@@ -22,8 +23,8 @@ class CommissionController extends Controller
         $user = $request->user();
         $params = $request->all();
 
-        if (! $user->isStaff() && $user->partner) {
-            $params['partner_id'] = $user->partner->id;
+        if (! $user->isStaff()) {
+            $params['partner_id'] = $user->partner?->id ?? -1; // fail closed: no partner => no rows
         }
 
         if ($request->expectsJson() || $request->ajax()) {
@@ -43,12 +44,19 @@ class CommissionController extends Controller
             ]);
         }
 
-        return view('commissions.index', [
-            'isStaff' => $user->isStaff(),
-            'partners' => $user->isStaff()
-                ? Partner::with('user:id,name')->get(['id', 'user_id'])->map(fn (Partner $p) => ['id' => $p->id, 'name' => $p->user->name])
-                : [],
-        ]);
+        return view('commissions.index', ['isStaff' => $user->isStaff()]);
+    }
+
+    /** Searchable partner options for the adjustment modal (staff only). */
+    public function partnerOptions(Request $request): mixed
+    {
+        $term = (is_string($request->get('search')) ? trim($request->get('search')) : '');
+        $q = Partner::query()->visibleTo($request->user())->with('user:id,name');
+        if ($term !== '') {
+            $q->whereHas('user', fn ($u) => $u->where('name', 'like', "%{$term}%")->orWhere('email', 'like', "%{$term}%"));
+        }
+
+        return $this->paginate($q->orderBy('id')->paginate($this->optionLimit($request), ['id', 'user_id']));
     }
 
     public function adjust(AdjustCommissionRequest $request): mixed
@@ -67,9 +75,9 @@ class CommissionController extends Controller
 
     private function earningsQuery($user)
     {
-        $q = Commission::query();
-        if (! $user->isStaff() && $user->partner) {
-            $q->where('partner_id', $user->partner->id);
+        $q = Commission::query()->where('status', '!=', CommissionStatus::Void->value);
+        if (! $user->isStaff()) {
+            $q->where('partner_id', $user->partner?->id ?? -1);
         }
 
         return $q;

@@ -11,7 +11,7 @@
 </x-page-header>
 
 <div class="card fill">
-    <div class="card-pad flex flex-wrap items-center gap-3 border-b" style="border-color:var(--border)">
+    <div class="card-pad flex flex-wrap items-center gap-3 border-b filter-bar" style="border-color:var(--border)">
         <input id="dt-search" class="input" style="max-width:280px" placeholder="Search by name or email…">
         <select id="dt-level" class="select" style="max-width:180px">
             <option value="">All levels</option>
@@ -68,13 +68,9 @@
                     </div>
                 </div>
                 <div class="field">
-                    <label class="label" for="f-sponsor">Sponsor (upline)</label>
-                    <select class="select" id="f-sponsor" name="sponsor_id">
-                        <option value="">— None (root partner) —</option>
-                        @foreach ($sponsors as $s)
-                            <option value="{{ $s['id'] }}">{{ $s['name'] }}</option>
-                        @endforeach
-                    </select>
+                    <label class="label" for="f-sponsor-search">Sponsor (upline)</label>
+                    <input class="input" id="f-sponsor-search" placeholder="Search sponsor… (blank = root partner)" autocomplete="off">
+                    <input type="hidden" id="f-sponsor" name="sponsor_id">
                 </div>
             </div>
 
@@ -115,8 +111,13 @@
 $(function () {
     const listUrl = "{{ route('admin.partners.index') }}";
     const base = "{{ url('admin/partners') }}";
-    const esc = (s) => $('<div>').text(s == null ? '' : s).html();
     const badge = { active: 'success', inactive: 'neutral', suspended: 'danger' };
+
+    const sponsorSelect = new SearchableSelect({
+        input: '#f-sponsor-search', hidden: '#f-sponsor',
+        url: "{{ route('admin.partners.sponsor-options') }}", placeholder: 'Search sponsor… (blank = root partner)',
+        map: s => ({ id: s.id, label: s.user.name + ' (L' + s.depth + ')' }),
+    });
 
     const dt = new DataTable({
         url: listUrl, mount: '#dt', defaultSort: 'id', defaultDir: 'asc',
@@ -126,13 +127,13 @@ $(function () {
             <td class="col-grow"><div class="font-medium">${esc(p.user ? p.user.name : '—')}</div>
                 <div class="text-xs" style="color:var(--text-muted)">${esc(p.user ? p.user.email : '')}</div></td>
             <td>${esc(p.level ? p.level.name : '—')}</td>
-            <td class="num">${p.depth}</td>
-            <td class="num">${p.direct_referral_count}</td>
-            <td class="num">${p.total_downline_count}</td>
+            <td class="num">${esc(p.depth)}</td>
+            <td class="num">${esc(p.direct_referral_count)}</td>
+            <td class="num">${esc(p.total_downline_count)}</td>
             <td><span class="badge badge-${badge[p.status] || 'neutral'}">${esc(p.status)}</span></td>
             <td class="text-right whitespace-nowrap">
-                @can('partners.update')<button class="btn btn-ghost btn-edit" data-id="${p.id}">Edit</button>@endcan
-                @can('partners.delete')<button class="btn btn-ghost btn-del" data-id="${p.id}" style="color:var(--c-danger)">Delete</button>@endcan
+                @can('partners.update')<button class="btn btn-ghost btn-edit" data-id="${esc(p.id)}">Edit</button>@endcan
+                @can('partners.delete')<button class="btn btn-ghost btn-del" data-id="${esc(p.id)}" style="color:var(--c-danger)">Delete</button>@endcan
             </td>
         </tr>`,
     });
@@ -140,6 +141,7 @@ $(function () {
 
     function openCreate() {
         $('#partner-form')[0].reset();
+        sponsorSelect.reset();
         $('#create-fields').removeClass('hidden');
         $('#status-field').addClass('hidden');
         $('#partner-form').data('url', "{{ route('admin.partners.store') }}").data('method', 'POST');

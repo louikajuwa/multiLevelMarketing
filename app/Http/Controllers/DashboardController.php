@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\CommissionStatus;
+use App\Enums\OrderStatus;
 use App\Enums\RoleName;
 use App\Models\Commission;
 use App\Models\Customer;
@@ -13,9 +15,6 @@ use Illuminate\Support\Collection;
 
 class DashboardController extends Controller
 {
-    /** Order statuses that count as recognized revenue. */
-    private const PAID = ['paid', 'processing', 'shipped', 'completed'];
-
     public function index(): mixed
     {
         $user = auth()->user();
@@ -31,7 +30,7 @@ class DashboardController extends Controller
 
     private function admin(): array
     {
-        $revenue = (float) Order::whereIn('status', self::PAID)->sum('grand_total');
+        $revenue = (float) Order::whereIn('status', OrderStatus::revenueStates())->sum('grand_total');
 
         return [
             'role' => 'admin',
@@ -45,11 +44,11 @@ class DashboardController extends Controller
                 'Active partners' => Partner::where('status', 'active')->count(),
                 'Products' => Product::count(),
                 'Pending orders' => Order::where('status', 'pending')->count(),
-                'Commissions paid' => $this->money((float) Commission::sum('amount')),
+                'Commissions paid' => $this->money((float) Commission::where('status', CommissionStatus::Paid->value)->sum('amount')),
             ],
             'chart' => $this->monthlyRevenue(null),
             'topPartners' => Partner::with('user:id,name')
-                ->withSum('commissions as earned', 'amount')
+                ->withSum(['commissions as earned' => fn ($q) => $q->where('status', '!=', CommissionStatus::Void->value)], 'amount')
                 ->orderByDesc('earned')->take(5)->get()
                 ->map(fn ($p) => ['name' => $p->user->name, 'value' => $this->money((float) $p->earned)]),
             'recentOrders' => $this->recent(Order::query()),
@@ -58,12 +57,12 @@ class DashboardController extends Controller
 
     private function partner(Partner $partner): array
     {
-        $sales = (float) Order::where('partner_id', $partner->id)->whereIn('status', self::PAID)->sum('grand_total');
+        $sales = (float) Order::where('partner_id', $partner->id)->whereIn('status', OrderStatus::revenueStates())->sum('grand_total');
 
         return [
             'role' => 'partner',
             'kpis' => [
-                ['label' => 'My earnings', 'value' => $this->money((float) Commission::where('partner_id', $partner->id)->sum('amount'))],
+                ['label' => 'My earnings', 'value' => $this->money((float) Commission::where('partner_id', $partner->id)->where('status', '!=', CommissionStatus::Void->value)->sum('amount'))],
                 ['label' => 'My sales', 'value' => $this->money($sales)],
                 ['label' => 'My customers', 'value' => number_format($partner->customers()->count())],
                 ['label' => 'Downline', 'value' => number_format($partner->total_downline_count)],
@@ -86,7 +85,7 @@ class DashboardController extends Controller
             'kpis' => [
                 ['label' => 'My discount', 'value' => rtrim(rtrim(number_format((float) $customer->discount_percent, 2), '0'), '.').'%'],
                 ['label' => 'My orders', 'value' => number_format($customer->orders()->count())],
-                ['label' => 'Spent', 'value' => $this->money((float) $customer->orders()->whereIn('status', self::PAID)->sum('grand_total'))],
+                ['label' => 'Spent', 'value' => $this->money((float) $customer->orders()->whereIn('status', OrderStatus::revenueStates())->sum('grand_total'))],
                 ['label' => 'Partner', 'value' => $customer->partner?->user?->name ?? '—'],
             ],
             'secondary' => [],
@@ -116,7 +115,7 @@ class DashboardController extends Controller
         $buckets = [];
         Order::query()
             ->when($partnerId, fn ($q) => $q->where('partner_id', $partnerId))
-            ->whereIn('status', self::PAID)
+            ->whereIn('status', OrderStatus::revenueStates())
             ->where('placed_at', '>=', $start)
             ->get(['placed_at', 'grand_total'])
             ->each(function (Order $o) use (&$buckets): void {

@@ -8,6 +8,7 @@ use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Product;
 use App\Repositories\Contracts\ProductRepositoryInterface;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -21,10 +22,30 @@ class ProductController extends Controller
             return $this->paginate($this->products->paginate($request->all(), ['category', 'brand', 'primaryImage']));
         }
 
-        return view('admin.products.index', [
-            'categories' => Category::active()->orderBy('name')->get(['id', 'name']),
-            'brands' => Brand::active()->orderBy('name')->get(['id', 'name']),
-        ]);
+        return view('admin.products.index');
+    }
+
+    /** Searchable active-category options. */
+    public function categoryOptions(Request $request): mixed
+    {
+        return $this->paginate($this->options(Category::active(), $request, 'name'));
+    }
+
+    /** Searchable active-brand options. */
+    public function brandOptions(Request $request): mixed
+    {
+        return $this->paginate($this->options(Brand::active(), $request, 'name'));
+    }
+
+    /** @param  Builder  $query */
+    private function options($query, Request $request, string $column)
+    {
+        $term = (is_string($request->get('search')) ? trim($request->get('search')) : '');
+        if ($term !== '') {
+            $query->where($column, 'like', "%{$term}%");
+        }
+
+        return $query->orderBy($column)->paginate($this->optionLimit($request), ['id', $column]);
     }
 
     public function store(StoreProductRequest $request): mixed

@@ -11,7 +11,7 @@
 </x-page-header>
 
 <div class="card fill">
-    <div class="card-pad flex flex-wrap items-center gap-3 border-b" style="border-color:var(--border)">
+    <div class="card-pad flex flex-wrap items-center gap-3 border-b filter-bar" style="border-color:var(--border)">
         <input id="dt-search" class="input" style="max-width:280px" placeholder="Search by name or email…">
         <select id="dt-status" class="select" style="max-width:160px">
             <option value="">All statuses</option>
@@ -61,13 +61,9 @@
                 </div>
                 @if ($isStaff)
                     <div class="field">
-                        <label class="label" for="f-partner">Partner</label>
-                        <select class="select" id="f-partner" name="partner_id">
-                            <option value="">Select a partner…</option>
-                            @foreach ($partners as $p)
-                                <option value="{{ $p['id'] }}">{{ $p['name'] }}</option>
-                            @endforeach
-                        </select>
+                        <label class="label" for="f-partner-search">Partner</label>
+                        <input class="input" id="f-partner-search" placeholder="Search partner…" autocomplete="off">
+                        <input type="hidden" id="f-partner" name="partner_id">
                     </div>
                 @endif
             </div>
@@ -109,9 +105,16 @@
 $(function () {
     const listUrl = "{{ route('customers.index') }}";
     const base = "{{ url('customers') }}";
-    const esc = (s) => $('<div>').text(s == null ? '' : s).html();
     const pct = (v) => (Number(v || 0).toFixed(2).replace(/\.00$/, '')) + '%';
     const badge = { active: 'success', inactive: 'neutral', suspended: 'danger' };
+
+    @if ($isStaff)
+    const partnerSelect = new SearchableSelect({
+        input: '#f-partner-search', hidden: '#f-partner',
+        url: "{{ route('customers.partner-options') }}", placeholder: 'Search partner…',
+        map: p => ({ id: p.id, label: p.user.name + ' (L' + p.depth + ')' }),
+    });
+    @endif
 
     const dt = new DataTable({
         url: listUrl, mount: '#dt', defaultSort: 'id', defaultDir: 'asc',
@@ -123,8 +126,8 @@ $(function () {
             <td class="num">${pct(c.discount_percent)}</td>
             <td><span class="badge badge-${badge[c.status] || 'neutral'}">${esc(c.status)}</span></td>
             <td class="text-right whitespace-nowrap">
-                @can('customers.update')<button class="btn btn-ghost btn-edit" data-id="${c.id}">Edit</button>@endcan
-                @can('customers.delete')<button class="btn btn-ghost btn-del" data-id="${c.id}" style="color:var(--c-danger)">Delete</button>@endcan
+                @can('customers.update')<button class="btn btn-ghost btn-edit" data-id="${esc(c.id)}">Edit</button>@endcan
+                @can('customers.delete')<button class="btn btn-ghost btn-del" data-id="${esc(c.id)}" style="color:var(--c-danger)">Delete</button>@endcan
             </td>
         </tr>`,
     });
@@ -132,6 +135,7 @@ $(function () {
 
     function openCreate() {
         $('#customer-form')[0].reset();
+        @if ($isStaff) partnerSelect.reset(); @endif
         $('#create-fields').removeClass('hidden');
         $('#status-field').addClass('hidden');
         $('#f-discount').val(0);

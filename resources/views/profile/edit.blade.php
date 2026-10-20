@@ -11,7 +11,7 @@
                 <div class="card-sub">Update your account's name and contact details.</div>
             </div>
         </div>
-        <form id="profile-form" method="POST" action="{{ route('profile.update') }}" data-method="PUT">
+        <form id="profile-form" data-busy="Saving…" method="POST" action="{{ route('profile.update') }}" data-method="PUT">
             @csrf
             <div class="card-pad">
                 <div class="field">
@@ -42,7 +42,7 @@
                 <div class="card-sub">Use a strong password you don't reuse elsewhere.</div>
             </div>
         </div>
-        <form id="password-form" method="POST" action="{{ route('profile.password') }}" data-method="PUT">
+        <form id="password-form" data-busy="Updating…" method="POST" action="{{ route('profile.password') }}" data-method="PUT">
             @csrf
             <div class="card-pad">
                 <div class="field">

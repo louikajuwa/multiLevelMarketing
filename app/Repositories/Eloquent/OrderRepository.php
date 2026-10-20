@@ -23,11 +23,14 @@ class OrderRepository extends BaseRepository implements OrderRepositoryInterface
 
     protected function applySearch(Builder $query, array $params): void
     {
-        $term = trim((string) ($params['search'] ?? ''));
+        $term = is_scalar($params['search'] ?? null) ? trim((string) $params['search']) : '';
         if ($term === '') {
             return;
         }
-        $query->where('order_number', 'like', "%{$term}%")
-            ->orWhereHas('customer.user', fn (Builder $q) => $q->where('name', 'like', "%{$term}%")->orWhere('email', 'like', "%{$term}%"));
+        // Group the OR so it does not escape the partner_id/customer_id filter (AND binds tighter than OR).
+        $query->where(function (Builder $q) use ($term): void {
+            $q->where('order_number', 'like', "%{$term}%")
+                ->orWhereHas('customer.user', fn (Builder $u) => $u->where('name', 'like', "%{$term}%")->orWhere('email', 'like', "%{$term}%"));
+        });
     }
 }

@@ -69,6 +69,21 @@ class Partner extends Model
         return $this->hasMany(Commission::class);
     }
 
+    /** Staff => all partners; partner => self + downline; anyone else => none (fail closed). */
+    public function scopeVisibleTo(Builder $q, User $user): Builder
+    {
+        if ($user->isStaff()) {
+            return $q;
+        }
+        $own = $user->partner;
+        if (! $own) {
+            return $q->whereRaw('1 = 0');
+        }
+
+        return $q->where(fn (Builder $w) => $w->whereKey($own->id)
+            ->orWhere('path', 'like', $own->path.$own->id.'/%'));
+    }
+
     /** Descendants via the materialized path (path LIKE this.path + id + %). */
     public function scopeDescendantsOf(Builder $q, Partner $partner): Builder
     {

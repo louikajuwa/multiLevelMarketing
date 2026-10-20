@@ -21,13 +21,13 @@ class StoreProductRequest extends FormRequest
             'sku' => ['required', 'string', 'max:64', Rule::unique('products', 'sku')->ignore($productId)],
             'category_id' => ['nullable', 'integer', 'exists:categories,id'],
             'brand_id' => ['nullable', 'integer', 'exists:brands,id'],
-            'description' => ['nullable', 'string'],
-            'cost_price' => ['required', 'numeric', 'min:0'],
-            'retail_price' => ['required', 'numeric', 'min:0'],
+            'description' => ['nullable', 'string', 'max:5000'],
+            'cost_price' => ['required', 'numeric', 'min:0', 'max:99999999'],
+            'retail_price' => ['required', 'numeric', 'min:0', 'max:99999999'],
             'partner_discount' => ['nullable', 'numeric', 'between:0,100'],
-            'stock' => ['required', 'integer', 'min:0'],
+            'stock' => ['required', 'integer', 'min:0', 'max:10000000'],
             'is_active' => ['nullable', 'boolean'],
-            'images' => ['nullable', 'array'],
+            'images' => ['nullable', 'array', 'max:10'],
             'images.*' => ['image', 'max:2048'],
         ];
     }

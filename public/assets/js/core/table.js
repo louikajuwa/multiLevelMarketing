@@ -55,6 +55,8 @@
           });
         });
       }
+      // Retry after a failed load
+      this.$root.on('click', '[data-dt-retry]', function () { self.reload(); });
       // Pagination
       this.$root.on('click', '[data-dt-page]', function (e) {
         e.preventDefault();
@@ -75,10 +77,28 @@
 
     reload() {
       const self = this;
-      this.$body.html('<tr><td colspan="99" class="p-6 text-center" style="color:var(--text-muted)"><span class="spinner" style="border-color:#cbd5e1;border-top-color:#475569"></span> Loading…</td></tr>');
-      return $.ajax({ url: this.cfg.url, data: this.params(), dataType: 'json', headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+      const cols = this.$root.find('thead th').length || 99;
+      const sk = '<td><span class="skel"></span></td>';
+      let rows = '';
+      for (let i = 0; i < 5; i++) rows += '<tr class="skel-row" aria-hidden="true">' + sk.repeat(Math.min(cols, 8)) + '</tr>';
+      if (this._req && this._req.abort) this._req.abort();
+      this.$root.attr('aria-busy', 'true');
+      this.$empty.addClass('hidden');
+      this.$body.html(rows + '<tr class="sr-only"><td role="status">Loading…</td></tr>');
+      this._req = $.ajax({ url: this.cfg.url, data: this.params(), dataType: 'json', headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+      const req = this._req;
+      return req
         .done(function (res) { self._render(res); })
-        .fail(function () { self.$body.html('<tr><td colspan="99" class="p-6 text-center" style="color:var(--c-danger)">Failed to load. <button class="btn btn-ghost" onclick="this.closest(\'table\')&&null">Retry</button></td></tr>'); window.toast && window.toast('Failed to load data', 'error'); });
+        .fail(function (xhr) {
+          if (xhr.statusText === 'abort') return;
+          self.$pagination.html('');
+          self.$body.html('<tr><td colspan="' + cols + '" class="p-6 text-center" style="color:var(--c-danger)">' +
+            (xhr.status === 0 ? 'Network error.' : 'Failed to load.') +
+            ' <button type="button" class="btn btn-secondary btn-sm" data-dt-retry>Retry</button></td></tr>');
+          if (xhr.status === 401 || xhr.status === 419 || xhr.status === 429 || xhr.status === 0 || xhr.status >= 500) window.httpFail && window.httpFail(xhr, null);
+          else window.toast && window.toast('Failed to load data', 'error');
+        })
+        .always(function () { self.$root.removeAttr('aria-busy'); });
     }
 
     _render(res) {
@@ -98,11 +118,11 @@
 
     _paginate(meta) {
       if (!meta.last_page || meta.last_page <= 1) { this.$pagination.html(''); return; }
-      const cur = meta.current_page, last = meta.last_page;
+      const cur = Number(meta.current_page), last = Number(meta.last_page);
       let html = '<div class="flex items-center justify-between text-sm" style="color:var(--text-muted)">';
-      html += `<span>Showing ${meta.from || 0}–${meta.to || 0} of ${meta.total}</span><div class="flex gap-1">`;
+      html += `<span>Showing ${Number(meta.from) || 0}–${Number(meta.to) || 0} of ${Number(meta.total) || 0}</span><div class="flex gap-1">`;
       const btn = (p, label, disabled, active) =>
-        `<button data-dt-page="${p}" class="btn ${active ? 'btn-primary' : 'btn-secondary'}" style="height:32px;padding:0 .6rem" ${disabled ? 'disabled' : ''}>${label}</button>`;
+        `<button type="button" data-dt-page="${p}" ${active ? 'aria-current="page"' : ''} aria-label="${typeof label === 'number' ? 'Page ' + label : label}" class="btn ${active ? 'btn-primary' : 'btn-secondary'}" style="height:32px;padding:0 .6rem" ${disabled ? 'disabled' : ''}>${label}</button>`;
       html += btn(cur - 1, 'Prev', cur <= 1, false);
       const start = Math.max(1, cur - 2), end = Math.min(last, cur + 2);
       for (let p = start; p <= end; p++) html += btn(p, p, false, p === cur);

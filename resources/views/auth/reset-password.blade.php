@@ -5,7 +5,7 @@
     <h1 class="text-lg font-semibold mb-1">Set a new password</h1>
     <p class="text-sm mb-5" style="color: var(--text-muted)">Choose a strong password for your account.</p>
 
-    <form id="reset-form" method="POST" action="{{ route('password.update') }}">
+    <form id="reset-form" data-busy="Resetting…" method="POST" action="{{ route('password.update') }}">
         @csrf
         <input type="hidden" name="token" value="{{ $token }}">
         <div class="field">

@@ -14,8 +14,10 @@
 </div>
 
 <div class="card fill">
-    <div class="card-pad flex flex-wrap items-center gap-3 border-b" style="border-color:var(--border)">
+    <div class="card-pad flex flex-wrap items-center gap-3 border-b filter-bar" style="border-color:var(--border)">
+        <label for="dt-search" class="sr-only">Search commissions</label>
         <input id="dt-search" class="input" style="max-width:240px" placeholder="Search partner…">
+        <label for="dt-type" class="sr-only">Filter by type</label>
         <select id="dt-type" class="select" style="max-width:160px">
             <option value="">All types</option><option value="direct">Direct</option><option value="sponsor_bonus">Sponsor bonus</option><option value="adjustment">Adjustment</option>
         </select>
@@ -34,11 +36,9 @@
 <x-modal id="adjust-modal" title="Commission adjustment">
     <form id="adjust-form">
         <div class="modal-body">
-            <div class="field"><label class="label" for="a-partner">Partner</label>
-                <select class="select" id="a-partner" name="partner_id" required>
-                    <option value="">Select…</option>
-                    @foreach ($partners as $p)<option value="{{ $p['id'] }}">{{ $p['name'] }}</option>@endforeach
-                </select>
+            <div class="field"><label class="label" for="a-partner-search">Partner</label>
+                <input class="input" id="a-partner-search" placeholder="Search partner…" autocomplete="off">
+                <input type="hidden" id="a-partner" name="partner_id" required>
             </div>
             <div class="field"><label class="label" for="a-amount">Amount (negative to reverse)</label>
                 <input class="input" id="a-amount" name="amount" type="number" step="0.01" required></div>
@@ -57,7 +57,6 @@
 <script>
 $(function () {
     const listUrl = "{{ route('commissions.index') }}";
-    const esc = (s) => $('<div>').text(s == null ? '' : s).html();
     const money = (v) => (v < 0 ? '-$' : '$') + Math.abs(Number(v || 0)).toFixed(2);
     const typeBadge = { direct:'success', sponsor_bonus:'info', adjustment:'warning' };
 
@@ -70,19 +69,32 @@ $(function () {
             <td style="color:var(--text-muted)">${esc(c.order ? c.order.order_number : '—')}</td>
             <td class="num" style="${c.amount<0?'color:var(--c-danger)':''}">${money(c.amount)}</td>
             <td class="num">${c.percent > 0 ? Number(c.percent).toFixed(2)+'%' : '—'}</td>
-            <td><span class="badge badge-${c.status==='paid'?'success':c.status==='void'?'danger':'neutral'}">${esc(c.status)}</span></td>
-            <td class="num" style="color:var(--text-muted)">${c.created_at ? c.created_at.substring(0,10) : '—'}</td>
+            <td>${badgeHtml(c.status, c.status === 'void' ? 'Void' : c.status)}</td>
+            <td class="num" style="color:var(--text-muted)">${esc(c.created_at ? c.created_at.substring(0,10) : '—')}</td>
         </tr>`,
     });
     function refresh() { dt.reload().done(r => { if (r.meta) $('#earnings').text(money(r.meta.earnings)); }); }
     refresh();
 
     @can('commissions.adjust')
-    $('#btn-adjust').on('click', function () { $('#adjust-form')[0].reset(); Modal.open('adjust-modal'); });
+    const partnerSelect = new SearchableSelect({
+        input: '#a-partner-search', hidden: '#a-partner',
+        url: "{{ route('commissions.partner-options') }}", placeholder: 'Search partner…',
+        map: p => ({ id: p.id, label: p.user.name }),
+    });
+    $('#btn-adjust').on('click', function () { $('#adjust-form')[0].reset(); partnerSelect.reset(); Modal.open('adjust-modal'); });
     $('#adjust-form').on('submit', function (e) {
         e.preventDefault(); const $f = $(this);
-        window.http({ method: 'POST', url: "{{ route('commissions.adjust') }}", data: $f.serialize(), form: $f, button: $f.find('[type=submit]') })
-            .done(() => { Modal.close('adjust-modal'); refresh(); });
+        const amt = Number($f.find('[name=amount]').val() || 0);
+        window.confirmDialog({
+            title: 'Record commission adjustment?',
+            message: 'This ' + (amt < 0 ? 'deducts ' : 'adds ') + money(Math.abs(amt)) + ' ' + (amt < 0 ? 'from' : 'to') + ' the partner\'s earnings and is permanent.',
+            confirmText: 'Record', danger: amt < 0,
+        }).then(function (ok) {
+            if (!ok) return;
+            window.http({ method: 'POST', url: "{{ route('commissions.adjust') }}", data: $f.serialize(), form: $f, button: $f.find('[type=submit]') })
+                .done(() => { Modal.close('adjust-modal'); refresh(); });
+        });
     });
     @endcan
 });

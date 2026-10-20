@@ -15,11 +15,22 @@ class TreeController extends Controller
         return view('tree.index');
     }
 
-    /** Lazy nodes: ?parent=<id> returns that partner's children; none returns roots. */
+    /**
+     * Lazy, paged nodes:
+     *   ?q=term   -> flat paged search hits
+     *   ?parent=n -> that partner's children (paged)
+     *   (none)    -> roots (paged)
+     */
     public function nodes(Request $request): mixed
     {
         $user = $request->user();
         $scope = (! $user->isStaff() && $user->partner) ? $user->partner : null;
+        $page = max(1, $request->integer('page', 1));
+        $term = trim((string) $request->get('q', ''));
+
+        if ($term !== '') {
+            return $this->paged($this->tree->search($term, $scope, $page));
+        }
 
         if ($request->filled('parent')) {
             $parent = Partner::findOrFail($request->integer('parent'));
@@ -27,9 +38,21 @@ class TreeController extends Controller
                 abort_unless($this->tree->canAccess($scope, $parent), 403);
             }
 
-            return $this->ok($this->tree->children($parent));
+            return $this->paged($this->tree->children($parent, $page));
         }
 
-        return $this->ok($this->tree->roots($scope));
+        return $this->paged($this->tree->roots($scope, $page));
+    }
+
+    /** Wrap a service ['data'=>…, 'meta'=>…] result in the standard JSON envelope. */
+    private function paged(array $result): mixed
+    {
+        return response()->json([
+            'success' => true,
+            'message' => 'OK',
+            'data' => $result['data'],
+            'meta' => $result['meta'],
+            'errors' => null,
+        ]);
     }
 }

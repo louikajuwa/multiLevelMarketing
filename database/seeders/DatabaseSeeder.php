@@ -29,8 +29,9 @@ class DatabaseSeeder extends Seeder
         );
         $admin->syncRoles([RoleName::Admin->value]);
 
-        $this->call([
-            DemoSeeder::class,
-        ]);
+        // Demo data only in local/testing — never seed known demo accounts in production.
+        if (app()->environment(['local', 'testing'])) {
+            $this->call([DemoSeeder::class]);
+        }
     }
 }

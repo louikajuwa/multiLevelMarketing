@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\Auditable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -19,6 +20,16 @@ class Customer extends Model
     protected function casts(): array
     {
         return ['discount_percent' => 'decimal:2'];
+    }
+
+    /** Restrict to customers the user may see: staff => all; partner => own; else => none (fail closed). */
+    public function scopeVisibleTo(Builder $query, User $user): Builder
+    {
+        if ($user->isStaff()) {
+            return $query;
+        }
+
+        return $query->where('partner_id', $user->partner?->id ?? -1);
     }
 
     public function user(): BelongsTo

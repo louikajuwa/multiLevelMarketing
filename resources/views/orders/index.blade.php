@@ -9,8 +9,10 @@
 </x-page-header>
 
 <div class="card fill">
-    <div class="card-pad flex flex-wrap items-center gap-3 border-b" style="border-color:var(--border)">
+    <div class="card-pad flex flex-wrap items-center gap-3 border-b filter-bar" style="border-color:var(--border)">
+        <label for="dt-search" class="sr-only">Search orders</label>
         <input id="dt-search" class="input" style="max-width:260px" placeholder="Search order # or customer…">
+        <label for="dt-status" class="sr-only">Filter by status</label>
         <select id="dt-status" class="select" style="max-width:160px">
             <option value="">All statuses</option>
             @foreach ($statuses as $s)<option value="{{ $s }}">{{ ucfirst($s) }}</option>@endforeach
@@ -32,19 +34,17 @@
 <x-modal id="order-modal" title="New order">
     <form id="order-form">
         <div class="modal-body">
-            @if ($isStaff)
-                <div class="field"><label class="label" for="o-customer">Customer</label>
-                    <select class="select" id="o-customer" name="customer_id" required>
-                        <option value="">Select a customer…</option>
-                        @foreach ($customers as $c)<option value="{{ $c['id'] }}">{{ $c['name'] }}</option>@endforeach
-                    </select>
+            @if ($canPickCustomer)
+                <div class="field"><label class="label" for="o-customer-search">Customer</label>
+                    <input class="input" id="o-customer-search" placeholder="Search customer…" autocomplete="off">
+                    <input type="hidden" id="o-customer" name="customer_id" required>
                 </div>
             @else
-                <input type="hidden" name="customer_id" value="{{ $customers[0]['id'] ?? '' }}">
+                <input type="hidden" name="customer_id" value="{{ $selfCustomerId }}">
             @endif
 
-            <label class="label">Items</label>
-            <div id="o-lines"></div>
+            <span class="label" id="o-items-label">Items</span>
+            <div id="o-lines" role="group" aria-labelledby="o-items-label"></div>
             <button type="button" class="btn btn-secondary btn-sm" id="add-line" style="margin-top:.4rem">+ Add item</button>
         </div>
         <div class="modal-footer">
@@ -64,19 +64,27 @@
 <script>
 $(function () {
     const listUrl = "{{ route('orders.index') }}", base = "{{ url('orders') }}";
-    const products = @json($products);
     const statuses = @json($statuses);
     const canStatus = @json(auth()->user()->can('orders.update_status'));
-    const esc = (s) => $('<div>').text(s == null ? '' : s).html();
     const money = (v) => '$' + Number(v || 0).toFixed(2);
-    const badge = { pending:'warning', paid:'success', processing:'info', shipped:'info', completed:'success', cancelled:'danger' };
-    const prodOpts = products.map(p => `<option value="${p.id}">${esc(p.name)} — ${money(p.retail_price)} (stock ${p.stock})</option>`).join('');
+    // Mirrors the backend order state machine; terminal states have no next status.
+    const NEXT = { pending: ['paid','cancelled'], paid: ['processing','cancelled'], processing: ['shipped','cancelled'], shipped: ['completed'], completed: [], cancelled: [] };
+    const badge = (s) => window.badgeType(s);
     let li = 0;
 
+    @if ($canPickCustomer)
+    const customerSelect = new SearchableSelect({
+        input: '#o-customer-search', hidden: '#o-customer',
+        url: "{{ route('orders.customer-options') }}", placeholder: 'Search customer…',
+        map: c => ({ id: c.id, label: c.user.name }),
+    });
+    @endif
+
     function statusCell(o) {
-        if (!canStatus) return `<span class="badge badge-${badge[o.status]||'neutral'}">${esc(o.status)}</span>`;
-        return `<select class="select st-sel" data-id="${o.id}" style="height:30px;font-size:12px;width:130px">` +
-            statuses.map(s => `<option value="${s}" ${s===o.status?'selected':''}>${s}</option>`).join('') + `</select>`;
+        const next = NEXT[o.status] || [];
+        if (!canStatus || !next.length) return `<span class="badge badge-${badge(o.status)}">${esc(o.status)}</span>`;
+        return `<select class="select st-sel" data-id="${esc(o.id)}" data-current="${esc(o.status)}" aria-label="Change status of order ${esc(o.order_number)}" style="height:30px;font-size:12px;width:130px">` +
+            [o.status].concat(next).filter(s => statuses.includes(s)).map(s => `<option value="${esc(s)}" ${s===o.status?'selected':''}>${esc(s)}</option>`).join('') + `</select>`;
     }
 
     const dt = new DataTable({
@@ -88,25 +96,36 @@ $(function () {
             <td>${esc(o.partner && o.partner.user ? o.partner.user.name : '—')}</td>
             <td class="num">${money(o.grand_total)}</td>
             <td>${statusCell(o)}</td>
-            <td class="num" style="color:var(--text-muted)">${o.placed_at ? o.placed_at.substring(0,10) : '—'}</td>
-            <td class="text-right whitespace-nowrap"><button class="btn btn-ghost btn-view" data-id="${o.id}">View</button></td>
+            <td class="num" style="color:var(--text-muted)">${esc(o.placed_at ? o.placed_at.substring(0,10) : '—')}</td>
+            <td class="text-right whitespace-nowrap"><button class="btn btn-ghost btn-view" data-id="${esc(o.id)}">View</button></td>
         </tr>`,
     });
     dt.reload();
 
     function addLine() {
         li++;
-        $('#o-lines').append(`<div class="flex items-center gap-2 mb-2 o-line">
-            <select name="items[${li}][product_id]" class="select" required>${prodOpts}</select>
-            <input name="items[${li}][quantity]" type="number" min="1" value="1" class="input" style="width:90px" required>
-            <button type="button" class="btn btn-ghost line-del">✕</button>
+        const idx = li;
+        const $line = $(`<div class="flex items-start gap-2 mb-2 o-line">
+            <div style="flex:1">
+                <input type="text" class="input o-prod-search" aria-label="Product" placeholder="Search product…" autocomplete="off">
+                <input type="hidden" name="items[${idx}][product_id]" class="o-prod-id" required>
+            </div>
+            <input name="items[${idx}][quantity]" aria-label="Quantity" type="number" min="1" value="1" class="input" style="width:90px" required>
+            <button type="button" class="btn btn-ghost line-del" aria-label="Remove item">✕</button>
         </div>`);
+        $('#o-lines').append($line);
+        new SearchableSelect({
+            input: $line.find('.o-prod-search'), hidden: $line.find('.o-prod-id'),
+            url: "{{ route('orders.product-options') }}", placeholder: 'Search product…',
+            map: p => ({ id: p.id, label: p.name + ' — ' + money(p.retail_price) + ' (stock ' + p.stock + ')' }),
+        });
     }
     $('#add-line').on('click', addLine);
     $('#o-lines').on('click', '.line-del', function () { $(this).closest('.o-line').remove(); });
 
     $('#btn-new').on('click', function () {
-        $('#order-form')[0].reset(); $('#o-lines').empty(); addLine();
+        $('#order-form')[0].reset(); @if ($canPickCustomer) customerSelect.reset(); @endif
+        $('#o-lines').empty(); addLine();
         Modal.open('order-modal');
     });
     $('#order-form').on('submit', function (e) {
@@ -117,8 +136,18 @@ $(function () {
 
     // Status change (admin)
     $('#dt').on('change', '.st-sel', function () {
-        const id = $(this).data('id'), status = this.value;
-        window.http({ method: 'PUT', url: base + '/' + id + '/status', data: { status } }).done(() => dt.reload());
+        const sel = this, id = $(this).data('id'), status = this.value, prev = $(this).data('current');
+        if (status === prev) return;
+        const send = () => window.http({ method: 'PUT', url: base + '/' + id + '/status', data: { status } })
+            .done(() => dt.reload())
+            .fail(() => { sel.value = prev; dt.reload(); });
+        if (status === 'cancelled') {
+            window.confirmDialog({ title: 'Cancel this order?', message: 'Cancelling is final and cannot be undone.', confirmText: 'Cancel order', cancelText: 'Keep order' })
+                .then(ok => { if (ok) send(); else sel.value = prev; });
+        } else if (status === 'completed') {
+            window.confirmDialog({ title: 'Mark order completed?', message: 'Completed orders cannot be changed afterwards.', confirmText: 'Mark completed', danger: false })
+                .then(ok => { if (ok) send(); else sel.value = prev; });
+        } else send();
     });
 
     // View detail
@@ -127,12 +156,12 @@ $(function () {
         window.http({ method: 'GET', url: base + '/' + id, quiet: true }).done(function (res) {
             const o = res.data;
             const rows = (o.items || []).map(it => `<tr>
-                <td class="col-grow">${esc(it.product_name)}</td><td class="num">${it.quantity}</td>
+                <td class="col-grow">${esc(it.product_name)}</td><td class="num">${esc(it.quantity)}</td>
                 <td class="num">${money(it.unit_retail_price)}</td><td class="num">${money(it.unit_final_price)}</td>
                 <td class="num">${money(it.line_total)}</td></tr>`).join('');
             $('#order-view-body').html(`
                 <div class="mb-3 text-sm"><b>${esc(o.order_number)}</b> · ${esc(o.customer?.user?.name||'')}
-                  · <span class="badge badge-${badge[o.status]||'neutral'}">${esc(o.status)}</span></div>
+                  · <span class="badge badge-${badge(o.status)}">${esc(o.status)}</span></div>
                 <div class="table-scroll" style="border:1px solid var(--border);border-radius:8px">
                 <table class="data-table"><thead><tr><th class="col-grow">Item</th><th>Qty</th><th>Retail</th><th>Final</th><th>Line</th></tr></thead>
                 <tbody>${rows}</tbody></table></div>

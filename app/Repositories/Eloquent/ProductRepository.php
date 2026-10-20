@@ -25,7 +25,7 @@ class ProductRepository extends BaseRepository implements ProductRepositoryInter
 
     protected function applySearch(Builder $query, array $params): void
     {
-        $term = trim((string) ($params['search'] ?? ''));
+        $term = is_scalar($params['search'] ?? null) ? trim((string) $params['search']) : '';
         if ($term === '') {
             return;
         }

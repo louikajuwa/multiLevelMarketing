@@ -13,8 +13,10 @@
   window.toast = function (message, type) {
     type = type || 'info';
     const root = ensureRoot();
+    root.setAttribute('aria-live', 'polite');
     const el = document.createElement('div');
     el.className = 'toast toast-' + type;
+    el.setAttribute('role', type === 'error' ? 'alert' : 'status');
     el.textContent = message;
     root.appendChild(el);
     requestAnimationFrame(() => el.classList.add('show'));

@@ -26,7 +26,7 @@ class UpdateSettingsRequest extends FormRequest
             'default_sponsor_bonus_percent' => ['nullable', 'numeric', 'between:0,100'],
             'max_partner_depth' => ['nullable', 'integer', 'between:1,10'],
             'mail_host' => ['nullable', 'string', 'max:255'],
-            'mail_port' => ['nullable', 'integer'],
+            'mail_port' => ['nullable', 'integer', 'between:1,65535'],
             'mail_username' => ['nullable', 'string', 'max:255'],
             'mail_password' => ['nullable', 'string', 'max:255'],
             'mail_encryption' => ['nullable', 'string', 'max:16'],

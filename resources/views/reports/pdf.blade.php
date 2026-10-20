@@ -16,6 +16,9 @@
 <body>
     <h1>{{ $title }}</h1>
     <div class="meta">{{ config('app.name') }} · generated {{ now()->toDayDateTimeString() }} · {{ count($rows) }} rows</div>
+    @if (! empty($truncated))
+        <div class="meta" style="color:#b45309">Truncated to the first {{ number_format($maxRows) }} rows — export Excel or CSV for the full dataset.</div>
+    @endif
     <table>
         <thead><tr>@foreach ($columns as $c)<th>{{ $c }}</th>@endforeach</tr></thead>
         <tbody>

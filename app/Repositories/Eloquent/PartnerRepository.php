@@ -3,6 +3,7 @@
 namespace App\Repositories\Eloquent;
 
 use App\Models\Partner;
+use App\Models\User;
 use App\Repositories\Contracts\PartnerRepositoryInterface;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -19,10 +20,20 @@ class PartnerRepository extends BaseRepository implements PartnerRepositoryInter
         return Partner::class;
     }
 
+    protected function applyFilters(Builder $query, array $params): void
+    {
+        parent::applyFilters($query, $params);
+
+        // Server-injected (never user input: query strings are strings/arrays only).
+        if (($params['_viewer'] ?? null) instanceof User) {
+            $query->visibleTo($params['_viewer']);
+        }
+    }
+
     /** Search matches the partner's user name/email. */
     protected function applySearch(Builder $query, array $params): void
     {
-        $term = trim((string) ($params['search'] ?? ''));
+        $term = is_scalar($params['search'] ?? null) ? trim((string) $params['search']) : '';
         if ($term === '') {
             return;
         }

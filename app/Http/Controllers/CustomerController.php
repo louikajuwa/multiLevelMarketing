@@ -31,13 +31,19 @@ class CustomerController extends Controller
             return $this->paginate($this->customers->paginate($params, ['user', 'partner.user']));
         }
 
-        return view('customers.index', [
-            'isStaff' => $user->isStaff(),
-            'partners' => $user->isStaff()
-                ? Partner::with('user:id,name')->get(['id', 'user_id', 'depth'])
-                    ->map(fn (Partner $p) => ['id' => $p->id, 'name' => $p->user->name.' (L'.$p->depth.')'])
-                : [],
-        ]);
+        return view('customers.index', ['isStaff' => $user->isStaff()]);
+    }
+
+    /** Searchable partner options for the create form (staff only). */
+    public function partnerOptions(Request $request): mixed
+    {
+        $term = (is_string($request->get('search')) ? trim($request->get('search')) : '');
+        $q = Partner::query()->visibleTo($request->user())->with('user:id,name');
+        if ($term !== '') {
+            $q->whereHas('user', fn ($u) => $u->where('name', 'like', "%{$term}%")->orWhere('email', 'like', "%{$term}%"));
+        }
+
+        return $this->paginate($q->orderBy('id')->paginate($this->optionLimit($request), ['id', 'user_id', 'depth']));
     }
 
     public function store(StoreCustomerRequest $request): mixed

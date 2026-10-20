@@ -97,7 +97,9 @@ h1, h2, h3 { letter-spacing: -0.01em; }
 .card-sub { font-size: .8125rem; color: var(--text-muted); margin-top: .1rem; }
 
 /* KPI stat */
-.stat { padding: 1rem 1.15rem; }
+.stat { padding: 1rem 1.15rem; display: flex; flex-direction: column; }
+.dash-split { grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 1024px) { .dash-split { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); } }
 .stat-label { font-size: .75rem; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: .03em; }
 .stat-value { font-size: 1.5rem; font-weight: 700; margin-top: .2rem; letter-spacing: -0.02em; }
 
@@ -109,6 +111,7 @@ h1, h2, h3 { letter-spacing: -0.01em; }
 .badge-warning { background: var(--c-warning-bg); color: var(--c-warning); }
 .badge-danger  { background: var(--c-danger-bg);  color: var(--c-danger); }
 .badge-info    { background: var(--c-info-bg);    color: var(--c-info); }
+.
 
 /* Toasts */
 #toast-root { position: fixed; top: 1rem; right: 1rem; z-index: 80; display: flex; flex-direction: column; gap: .5rem; }
@@ -192,3 +195,45 @@ h1, h2, h3 { letter-spacing: -0.01em; }
   border-radius: 0 3px 3px 0; background: var(--c-accent-600); }
 .nav-section { padding: 1rem .7rem .3rem; font-size: .6875rem; font-weight: 600; text-transform: uppercase;
   letter-spacing: .05em; color: var(--c-neutral-400); }
+
+/* ---- Accessibility ---- */
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+a:focus-visible, button:focus-visible, [role="button"]:focus-visible, summary:focus-visible,
+.nav-link:focus-visible, [tabindex]:focus-visible {
+  outline: 2px solid var(--c-accent-600); outline-offset: 2px; }
+.btn:focus-visible { outline: 2px solid var(--c-accent-600); outline-offset: 2px; box-shadow: 0 0 0 4px var(--c-accent-100); }
+.input:focus-visible, .select:focus-visible, .textarea:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 2px solid var(--c-accent-600); outline-offset: 1px; border-color: var(--c-accent-500); }
+.modal-panel:focus { outline: none; }
+@media (prefers-reduced-motion: reduce) { * { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
+
+/* ---- Loading skeleton ---- */
+.skel { display: block; height: .8rem; min-width: 3rem; border-radius: 6px;
+  background: linear-gradient(90deg, var(--c-neutral-100) 25%, var(--c-neutral-200) 37%, var(--c-neutral-100) 63%);
+  background-size: 400% 100%; animation: skel 1.3s ease infinite; }
+.skel-row:hover { background: transparent !important; }
+@keyframes skel { 0% { background-position: 100% 50%; } 100% { background-position: 0 50%; } }
+
+/* ---- Responsive ---- */
+.notif-dd { width: min(340px, calc(100vw - 2rem)); }
+.page-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.25rem; }
+.page-header-actions { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem; }
+.modal-panel { max-height: calc(100vh - 2rem); max-height: calc(100dvh - 2rem); display: flex; flex-direction: column; }
+.modal-panel > form { display: flex; flex-direction: column; min-height: 0; flex: 1 1 auto; }
+.modal-panel .modal-body { overflow-y: auto; min-height: 0; }
+.modal-header, .modal-footer { flex: none; }
+.filter-bar > .input, .filter-bar > .select { max-width: 100%; }
+@media (max-width: 640px) {
+  .filter-bar { flex-direction: column; align-items: stretch !important; }
+  .filter-bar > .input, .filter-bar > .select, .filter-bar > div { width: 100%; max-width: none !important; }
+  .page-header-actions { width: 100%; }
+  .page-header-actions .btn { flex: 1 1 auto; }
+  .modal-footer { flex-wrap: wrap; }
+  .modal-footer .btn { flex: 1 1 auto; min-width: 0; }
+  #toast-root { left: 1rem; right: 1rem; }
+  .toast { max-width: none; min-width: 0; }
+}
+.skip-link { position: absolute; left: .5rem; top: -3rem; z-index: 100; background: var(--c-accent-600); color: #fff;
+  padding: .5rem .8rem; border-radius: var(--radius-sm); font-weight: 600; font-size: .8125rem; }
+.skip-link:focus { top: .5rem; }

@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="{{ $asset('assets/css/app.css') }}">
 </head>
 <body class="h-full">
+<a href="#main" class="skip-link">Skip to content</a>
 <div class="h-screen flex overflow-hidden">
     {{-- Sidebar --}}
     <aside id="sidebar"
@@ -35,34 +36,34 @@
     <div class="flex-1 flex flex-col min-w-0 min-h-0">
         <header class="h-16 shrink-0 bg-white border-b flex items-center justify-between px-4 lg:px-6" style="border-color: var(--border)">
             <div class="flex items-center gap-3">
-                <button id="sidebar-toggle" class="btn btn-ghost lg:hidden" aria-label="Toggle navigation">☰</button>
+                <button id="sidebar-toggle" type="button" class="btn btn-ghost lg:hidden" aria-label="Toggle navigation" aria-controls="sidebar" aria-expanded="false">☰</button>
                 <h1 class="font-semibold">@yield('page-title', 'Dashboard')</h1>
             </div>
             <div class="flex items-center gap-3">
                 <div class="relative" id="notif">
-                    <button class="btn btn-ghost" id="notif-btn" style="position:relative" aria-label="Notifications">
-                        <svg class="ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-                        <span id="notif-badge" class="hidden" style="position:absolute;top:0;right:0;min-width:16px;height:16px;padding:0 4px;border-radius:9px;background:var(--c-danger);color:#fff;font-size:10px;line-height:16px;text-align:center">0</span>
+                    <button type="button" class="btn btn-ghost" id="notif-btn" style="position:relative" aria-label="Notifications" aria-haspopup="true" aria-controls="notif-dd" aria-expanded="false">
+                        <svg class="ic" aria-hidden="true" focusable="false" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                        <span id="notif-badge" class="hidden" aria-live="polite" style="position:absolute;top:0;right:0;min-width:16px;height:16px;padding:0 4px;border-radius:9px;background:var(--c-danger);color:#fff;font-size:10px;line-height:16px;text-align:center">0</span>
                     </button>
-                    <div id="notif-dd" class="hidden absolute right-0 mt-2 card shadow-lg" style="width:340px;z-index:60">
-                        <div class="card-header"><span class="card-title">Notifications</span><button class="btn btn-ghost btn-sm" id="notif-read">Mark all read</button></div>
+                    <div id="notif-dd" class="hidden absolute right-0 mt-2 card shadow-lg notif-dd" style="z-index:60" role="region" aria-label="Notifications">
+                        <div class="card-header"><span class="card-title">Notifications</span><button type="button" class="btn btn-ghost btn-sm" id="notif-read">Mark all read</button></div>
                         <div id="notif-list" style="max-height:340px;overflow:auto"></div>
                     </div>
                 </div>
                 <div class="relative" id="user-menu">
-                    <button class="btn btn-secondary" id="user-menu-btn">
-                        {{ auth()->user()->name }} ▾
+                    <button type="button" class="btn btn-secondary" id="user-menu-btn" aria-label="Account menu" aria-haspopup="true" aria-controls="user-menu-dropdown" aria-expanded="false">
+                        {{ auth()->user()->name }} <span aria-hidden="true">▾</span>
                     </button>
                     <div id="user-menu-dropdown"
-                         class="hidden absolute right-0 mt-2 w-44 card shadow-lg py-1 text-sm z-50">
-                        <a href="{{ route('profile.edit') }}" class="block px-4 py-2 hover:bg-[color:var(--c-neutral-50)]">Profile</a>
-                        <button id="logout-btn" class="w-full text-left px-4 py-2 hover:bg-[color:var(--c-neutral-50)]" style="color: var(--c-danger)">Sign out</button>
+                         class="hidden absolute right-0 mt-2 w-44 card shadow-lg py-1 text-sm z-50" role="menu" aria-label="Account">
+                        <a href="{{ route('profile.edit') }}" role="menuitem" class="block px-4 py-2 hover:bg-[color:var(--c-neutral-50)]">Profile</a>
+                        <button id="logout-btn" type="button" role="menuitem" class="w-full text-left px-4 py-2 hover:bg-[color:var(--c-neutral-50)]" style="color: var(--c-danger)">Sign out</button>
                     </div>
                 </div>
             </div>
         </header>
 
-        <main class="app-main flex-1 min-h-0 overflow-x-hidden p-5 lg:p-7 @yield('main-mode')">
+        <main id="main" class="app-main flex-1 min-h-0 overflow-x-hidden p-5 lg:p-7 @yield('main-mode')">
             <div class="content">
                 @yield('content')
             </div>
@@ -73,30 +74,49 @@
 <form id="logout-form" method="POST" action="{{ route('logout') }}" class="hidden">@csrf</form>
 <div id="toast-root"></div>
 
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+<script src="{{ $asset('assets/js/core/util.js') }}"></script>
 <script src="{{ $asset('assets/js/core/toast.js') }}"></script>
 <script src="{{ $asset('assets/js/core/http.js') }}"></script>
 <script src="{{ $asset('assets/js/core/modal.js') }}"></script>
 <script src="{{ $asset('assets/js/core/table.js') }}"></script>
+<script src="{{ $asset('assets/js/core/searchable-select.js') }}"></script>
 <script src="/socket.io/socket.io.js"></script>
 <script src="{{ $asset('assets/js/core/realtime.js') }}"></script>
 <script>
     $(function () {
+        // Dropdown / sidebar toggles keep aria-expanded in sync; Escape closes them.
+        function setOpen($btn, $panel, open) {
+            $panel.toggleClass('hidden', !open);
+            $btn.attr('aria-expanded', open ? 'true' : 'false');
+        }
+        function closeMenus(restoreFocus) {
+            [['#user-menu-btn', '#user-menu-dropdown'], ['#notif-btn', '#notif-dd']].forEach(function (p) {
+                if (!$(p[1]).hasClass('hidden')) { setOpen($(p[0]), $(p[1]), false); if (restoreFocus) $(p[0]).trigger('focus'); }
+            });
+        }
         $('#sidebar-toggle').on('click', function () {
-            $('#sidebar').toggleClass('-translate-x-full');
+            const hidden = $('#sidebar').toggleClass('-translate-x-full').hasClass('-translate-x-full');
+            $(this).attr('aria-expanded', hidden ? 'false' : 'true');
         });
         $('#user-menu-btn').on('click', function (e) {
             e.stopPropagation();
-            $('#user-menu-dropdown').toggleClass('hidden');
+            const open = $('#user-menu-dropdown').hasClass('hidden');
+            closeMenus(false);
+            setOpen($(this), $('#user-menu-dropdown'), open);
         });
-        $(document).on('click', function () { $('#user-menu-dropdown').addClass('hidden'); });
+        $(document).on('click', function () { closeMenus(false); });
+        $(document).on('keydown', function (e) {
+            if (e.key !== 'Escape' || $('.modal-root:not(.hidden)').length) return;
+            closeMenus(true);
+            if (!$('#sidebar').hasClass('-translate-x-full') && window.innerWidth < 1024) $('#sidebar-toggle').trigger('click').trigger('focus');
+        });
         $('#logout-btn').on('click', function () {
             window.http({ method: 'POST', url: '{{ route('logout') }}', quiet: true })
                 .done(function (res) { window.location = (res.data && res.data.redirect) || '{{ route('login') }}'; });
         });
 
         // Notifications bell
-        const esc = (s) => $('<div>').text(s == null ? '' : s).html();
         window.loadNotifs = function () {
             $.getJSON('{{ route('notifications.index') }}').done(function (res) {
                 const d = res.data || {};
@@ -104,16 +124,20 @@
                 else $('#notif-badge').addClass('hidden');
                 const items = d.items || [];
                 $('#notif-list').html(items.length ? items.map(n => `
-                    <a href="${n.url || '#'}" class="block px-4 py-2 border-b" style="border-color:var(--c-neutral-100);${n.read ? '' : 'background:var(--c-accent-50)'}">
+                    <a href="${esc(safeUrl(n.url))}" class="block px-4 py-2 border-b" style="border-color:var(--c-neutral-100);${n.read ? '' : 'background:var(--c-accent-50)'}">
                         <div class="font-medium text-sm">${esc(n.title)}</div>
                         <div class="text-xs" style="color:var(--text-muted)">${esc(n.message)} · ${esc(n.at)}</div>
                     </a>`).join('') : '<div class="p-4 text-center text-sm" style="color:var(--text-muted)">You\'re all caught up</div>');
             });
         };
-        $('#notif-btn').on('click', function (e) { e.stopPropagation(); $('#notif-dd').toggleClass('hidden'); });
+        $('#notif-btn').on('click', function (e) {
+            e.stopPropagation();
+            const open = $('#notif-dd').hasClass('hidden');
+            closeMenus(false);
+            setOpen($(this), $('#notif-dd'), open);
+        });
         $('#notif-dd').on('click', function (e) { e.stopPropagation(); });
         $('#notif-read').on('click', function () { window.http({ method: 'POST', url: '{{ route('notifications.read') }}', quiet: true }).done(loadNotifs); });
-        $(document).on('click', function () { $('#notif-dd').addClass('hidden'); });
         loadNotifs();
         setInterval(loadNotifs, 30000);
     });

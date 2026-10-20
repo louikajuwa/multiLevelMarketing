@@ -1,58 +1,186 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# MLM Enterprise
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A Laravel 13 multi-level marketing platform. Partners recruit sub-partners and customers, customers purchase products at negotiated discounts, and the system automatically calculates partner commissions and upline sponsor bonuses based on a 4-level hierarchy.
 
-## About Laravel
+> **What's new (scalability + isolation pass):** all selectors (partner, customer, product, sponsor, category, brand) are now **searchable inputs** that load 10 results at a time instead of dumping the whole table; the **genealogy tree** is paginated ("Load more") with a search box; **report exports stream** in chunks (PDF capped at 2000 rows); and a **partner sees only their own customers** everywhere (fail-closed). See [`details.md`](details.md) and [`code.md`](code.md).
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Quick Start
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
-
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
-
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+### First Time Setup
 
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+make setup
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+This single command:
+- Creates `.env` from `.env.example` if it doesn't exist
+- Builds and starts all Docker containers
+- Installs PHP dependencies via Composer
+- Generates the Laravel `APP_KEY`
+- Generates the `SOCKET_SECRET` for real-time communication
+- Runs database migrations and seeders
+- Links storage directory
+- Resets permission cache
 
-## Contributing
+After setup completes, visit:
+- **App:** `http://localhost:8080`
+- **phpMyAdmin:** `http://localhost:8081`
+- **Mailpit (test email):** `http://localhost:8025`
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### Default Credentials
 
-## Code of Conduct
+After seeding, log in with:
+- **Super Admin:** `superadmin@mlm.test` / `password`
+- **Admin:** `admin@mlm.test` / `password`
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+See [`details.md`](details.md) for the full list of seeded demo accounts.
 
-## Security Vulnerabilities
+### Subsequent Runs
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+**Start:**
+```bash
+make up
+```
 
-## License
+**Stop:**
+```bash
+make down
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+**Restart:**
+```bash
+make restart
+```
+
+## Common Commands
+
+| Command | Purpose |
+|---------|---------|
+| `make logs` | Tail container logs (last 100 lines) |
+| `make ps` | Show running containers |
+| `make shell` | Open a bash shell in the app container |
+| `make migrate` | Run pending database migrations |
+| `make fresh` | Reset database (drop + re-migrate + re-seed) |
+| `make seed` | Run database seeders |
+| `make build` | Rebuild Docker images |
+| `make test` | Run test suite (isolated: SQLite in-memory) |
+| `make pint` | Format code with Laravel Pint |
+
+## Architecture
+
+### Services & Ports
+
+| Service | Port | Purpose |
+|---------|------|---------|
+| Laravel App (FPM) | — | Core business logic (internal) |
+| Nginx | 8080 | Web server (browser) |
+| MySQL | 3308 | Database (host access for external tools) |
+| Redis | — | Cache, sessions, queue (internal) |
+| phpMyAdmin | 8081 | Database GUI |
+| Mailpit | 8025 | Email UI (development) |
+| Socket.IO | 3001 | Real-time events (internal, reverse-proxied by Nginx) |
+
+### Stack
+
+- **PHP 8.4** (FPM) with Laravel 13
+- **MySQL 8.4** (persistent volume)
+- **Redis 7** (cache, sessions, queue, events)
+- **Nginx 1.27** (reverse proxy, static assets)
+- **Node 20** (Socket.IO real-time server)
+- **Vite** (asset bundling, development)
+- **Spatie Laravel Permission** (roles & permissions)
+
+## Environment Variables
+
+Key `.env` settings (auto-created from `.env.example`):
+
+- `APP_URL=http://localhost:8080` — used for links in emails/redirects
+- `DB_HOST=mysql` (container name, not localhost)
+- `REDIS_HOST=redis` (container name)
+- `SOCKET_SECRET` — auto-generated during setup; do not edit
+- `MAIL_HOST=mailpit` (in-memory, no actual email)
+
+For production, update `MAIL_HOST`, `MAIL_USERNAME`, `MAIL_PASSWORD`, and any third-party API keys.
+
+## Data & Persistence
+
+- **MySQL:** persisted in Docker volume `mlm_mysql`
+- **Redis:** persisted in Docker volume `mlm_redis`
+- **Project files:** live-bind mounted into the container (edits reflect immediately)
+
+To reset the database:
+```bash
+make fresh
+```
+
+To delete all volumes (including DB):
+```bash
+docker compose down -v
+make setup
+```
+
+## Real-Time Events
+
+The system publishes domain events to Redis; a Node.js Socket.IO service (`socket-server/`) relays them to the browser. Events are secured by `SOCKET_SECRET` (generated during setup).
+
+## Debugging
+
+- **Business logic bugs:** See [`code.md`](code.md) for the service/model map.
+- **Database issues:** Use phpMyAdmin at `http://localhost:8081`.
+- **Email issues:** Check Mailpit at `http://localhost:8025` (no SMTP auth needed in dev).
+- **Container logs:** `make logs`
+- **Inside the container:** `make shell`
+
+## Project Overview
+
+See [`details.md`](details.md) for:
+- Default login credentials and roles
+- System business logic (partner hierarchy, commissions, discounts)
+- How orders, payments, and audits work
+
+See [`code.md`](code.md) for:
+- Route → Controller → View → Model/Service map
+- Core service layer (where business logic lives)
+- Debugging index ("if X is broken, look here")
+
+## Troubleshooting
+
+**Containers won't start:**
+```bash
+make build
+make up
+```
+
+**Database errors on first run:**
+```bash
+make fresh
+```
+
+**Permission denied on storage:**
+```bash
+make shell
+chmod -R 777 storage bootstrap/cache
+```
+
+**"Connection refused" when accessing localhost:8080:**
+- Ensure containers are running: `make ps`
+- Check logs: `make logs`
+
+**Email not sending:**
+- Emails go to Mailpit in dev. Check `http://localhost:8081` (phpmyadmin) to verify DB connectivity, and `http://localhost:8025` (Mailpit) to see queued mail.
+
+## Testing
+
+```bash
+make test
+```
+
+Runs the test suite in an isolated environment (SQLite in-memory, array drivers for cache/session/queue). This does not affect your dev database.
+
+## Code Quality
+
+```bash
+make pint
+```
+
+Formats code to Laravel standards using Pint.
