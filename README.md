@@ -2,7 +2,7 @@
 
 A Laravel 13 multi-level marketing platform. Partners recruit sub-partners and customers, customers purchase products at negotiated discounts, and the system automatically calculates partner commissions and upline sponsor bonuses based on a 4-level hierarchy.
 
-> **What's new (scalability + isolation pass):** all selectors (partner, customer, product, sponsor, category, brand) are now **searchable inputs** that load 10 results at a time instead of dumping the whole table; the **genealogy tree** is paginated ("Load more") with a search box; **report exports stream** in chunks (PDF capped at 2000 rows); and a **partner sees only their own customers** everywhere (fail-closed). See [`details.md`](details.md) and [`code.md`](code.md).
+> **What's new (scalability + isolation pass):** all selectors (partner, customer, product, sponsor, category, brand) are now **searchable inputs** that load 10 results at a time instead of dumping the whole table; the **genealogy tree** is paginated ("Load more") with a search box; **report exports stream** in chunks (PDF capped at 2000 rows); and a **partner sees only their own customers** everywhere (fail-closed). See [`details.md`](docs/details.md) and [`code.md`](docs/code.md).
 
 ## Quick Start
 
@@ -33,7 +33,7 @@ After seeding, log in with:
 - **Super Admin:** `superadmin@mlm.test` / `password`
 - **Admin:** `admin@mlm.test` / `password`
 
-See [`details.md`](details.md) for the full list of seeded demo accounts.
+See [`details.md`](docs/details.md) for the full list of seeded demo accounts.
 
 ### Subsequent Runs
 
@@ -125,7 +125,7 @@ The system publishes domain events to Redis; a Node.js Socket.IO service (`socke
 
 ## Debugging
 
-- **Business logic bugs:** See [`code.md`](code.md) for the service/model map.
+- **Business logic bugs:** See [`code.md`](docs/code.md) for the service/model map.
 - **Database issues:** Use phpMyAdmin at `http://localhost:8081`.
 - **Email issues:** Check Mailpit at `http://localhost:8025` (no SMTP auth needed in dev).
 - **Container logs:** `make logs`
@@ -133,12 +133,12 @@ The system publishes domain events to Redis; a Node.js Socket.IO service (`socke
 
 ## Project Overview
 
-See [`details.md`](details.md) for:
+See [`details.md`](docs/details.md) for:
 - Default login credentials and roles
 - System business logic (partner hierarchy, commissions, discounts)
 - How orders, payments, and audits work
 
-See [`code.md`](code.md) for:
+See [`code.md`](docs/code.md) for:
 - Route → Controller → View → Model/Service map
 - Core service layer (where business logic lives)
 - Debugging index ("if X is broken, look here")
@@ -184,3 +184,7 @@ make pint
 ```
 
 Formats code to Laravel standards using Pint.
+
+## License
+
+MIT — see [LICENSE](LICENSE).
